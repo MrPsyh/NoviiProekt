@@ -4,9 +4,10 @@ from .bunker import BunkerGame
 from .crocodile import CrocodileGame
 from .hangman import HangmanGame
 from .mafia import MafiaGame
+from .quiz import QuizGame
 from .truth_or_dare import TruthOrDareGame
 
-# slug -> класс игры. Чтобы добавить новую игру, допиши её сюда.
+# Групповые игры (меню /newgame). Чтобы добавить игру — допиши её сюда.
 GAME_REGISTRY: dict[str, type[BaseGame]] = {
     CrocodileGame.slug: CrocodileGame,
     BunkerGame.slug: BunkerGame,
@@ -15,8 +16,14 @@ GAME_REGISTRY: dict[str, type[BaseGame]] = {
     TruthOrDareGame.slug: TruthOrDareGame,
 }
 
+# Соло-игры для ЛС с ботом (меню /play).
+SOLO_REGISTRY: dict[str, type[BaseGame]] = {
+    HangmanGame.slug: HangmanGame,
+    QuizGame.slug: QuizGame,
+}
+
 __all__ = [
     "BaseGame", "Phase", "Player", "RoomManager",
     "CrocodileGame", "BunkerGame", "MafiaGame", "HangmanGame",
-    "TruthOrDareGame", "GAME_REGISTRY",
+    "TruthOrDareGame", "QuizGame", "GAME_REGISTRY", "SOLO_REGISTRY",
 ]

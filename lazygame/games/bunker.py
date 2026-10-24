@@ -78,7 +78,7 @@ class BunkerGame(BaseGame):
             self.revealed[player.user_id] = set()
 
         intro = (
-            f"☢️ <b>КАТАСТРОФА</b>\n{self.scenario}\n\n"
+            f"☢️ <b>КАТАСТРОФА</b>\n<blockquote>{self.scenario}</blockquote>\n"
             f"<b>О бункере:</b>\n" + "\n".join(f"• {l}" for l in self.bunker_lines) +
             f"\n\n🚪 Мест в бункере: <b>{self.capacity}</b> из {len(self.players)} игроков.\n"
             f"Остальных придётся оставить снаружи.\n\n"

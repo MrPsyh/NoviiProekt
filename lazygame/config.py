@@ -9,6 +9,8 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_ID = os.getenv("ADMIN_ID", "").strip()
+# URL мини-аппа (Telegram Web App). Если задан — появится кнопка «Открыть LazyGame».
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
 
 if not BOT_TOKEN:
     raise RuntimeError(

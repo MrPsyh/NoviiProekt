@@ -63,7 +63,7 @@ class TruthOrDareGame(BaseGame):
         ]])
         await bot.send_message(
             self.chat_id,
-            f"{label} для {self.players[user_id].mention}:\n\n<b>{task}</b>",
+            f"{label} для {self.players[user_id].mention}:\n\n<blockquote><b>{task}</b></blockquote>",
             parse_mode="HTML",
             reply_markup=kb,
         )

@@ -6,12 +6,17 @@
 from __future__ import annotations
 
 import logging
+from io import BytesIO
 
 from telegram import (
     BotCommand,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    KeyboardButton,
+    MenuButtonWebApp,
+    ReplyKeyboardMarkup,
     Update,
+    WebAppInfo,
 )
 from telegram.constants import ChatType
 from telegram.ext import (
@@ -25,7 +30,8 @@ from telegram.ext import (
     filters,
 )
 
-from .config import BOT_TOKEN
+from .cards import render_welcome
+from .config import BOT_TOKEN, WEBAPP_URL
 from .games import (
     BunkerGame,
     CrocodileGame,
@@ -34,7 +40,9 @@ from .games import (
     MafiaGame,
     Phase,
     Player,
+    QuizGame,
     RoomManager,
+    SOLO_REGISTRY,
     TruthOrDareGame,
 )
 from .settings import settings
@@ -48,6 +56,37 @@ logger = logging.getLogger("lazygame")
 rooms = RoomManager()
 
 ADMIN_STATUSES = {"administrator", "creator"}
+
+WELCOME_GAMES = [
+    ("Крокодил", "объясняй слово без слов"),
+    ("Бункер", "переживи катастрофу"),
+    ("Мафия", "найди мафию в городе"),
+    ("Виселица", "угадай слово по буквам"),
+    ("Правда/Действие", "выбери и выполни"),
+    ("Викторина", "соло в личке с ботом"),
+]
+
+_WELCOME_BYTES: bytes | None = None
+
+
+def _welcome_photo() -> BytesIO:
+    """Кэшированное приветственное фото (рендерится один раз)."""
+    global _WELCOME_BYTES
+    if _WELCOME_BYTES is None:
+        _WELCOME_BYTES = render_welcome(WELCOME_GAMES).getvalue()
+    bio = BytesIO(_WELCOME_BYTES)
+    bio.name = "welcome.png"
+    return bio
+
+
+def _webapp_reply_keyboard() -> ReplyKeyboardMarkup | None:
+    """Reply-клавиатура с кнопкой мини-аппа (только если задан WEBAPP_URL)."""
+    if not WEBAPP_URL:
+        return None
+    return ReplyKeyboardMarkup(
+        [[KeyboardButton("🎮 Открыть LazyGame", web_app=WebAppInfo(url=WEBAPP_URL))]],
+        resize_keyboard=True,
+    )
 
 
 def _player_from_user(user) -> Player:
@@ -114,16 +153,63 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 # ======================================================================
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.effective_chat.type == ChatType.PRIVATE:
-        await update.message.reply_text(
-            "Привет! Я LazyGame 🎲\n\n"
-            "Добавь меня в групповой чат, сделай администратором и напиши "
-            "/newgame — выберешь игру:\n"
-            "🐊 Крокодил · 🏚 Бункер · 🔪 Мафия · 🪢 Виселица · 🎭 Правда/Действие\n\n"
-            "Важно: напиши мне /start здесь (в личке) заранее — тогда я смогу "
-            "присылать тебе слова и роли."
+        caption = (
+            "Привет! Я <b>LazyGame</b> 🎲\n\n"
+            "🎮 <b>В личке</b> со мной можно играть соло — жми /play "
+            "(Виселица и Викторина).\n"
+            "👥 <b>В группе</b> — весёлые игры на компанию: добавь меня, сделай "
+            "админом и напиши /newgame.\n\n"
+            "<blockquote>Совет: держи этот чат открытым — сюда я присылаю слова "
+            "и роли во время игр.</blockquote>"
+        )
+        kb = _webapp_reply_keyboard()
+        await update.message.reply_photo(
+            _welcome_photo(), caption=caption, parse_mode="HTML", reply_markup=kb
         )
     else:
-        await cmd_help(update, context)
+        await update.message.reply_photo(
+            _welcome_photo(),
+            caption="🎲 <b>LazyGame</b> тут! Пиши /newgame — выберем игру.",
+            parse_mode="HTML",
+        )
+
+
+async def cmd_play(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Соло-игры в личке с ботом."""
+    if update.effective_chat.type != ChatType.PRIVATE:
+        await update.message.reply_text(
+            "Соло-игры — только в личке со мной. Напиши мне в ЛС /play 🙂"
+        )
+        return
+    chat_id = update.effective_chat.id
+    if rooms.has_active(chat_id):
+        await update.message.reply_text("У тебя уже идёт игра. Заверши её: /stop")
+        return
+    rows = [
+        [InlineKeyboardButton(cls.title, callback_data=f"solo:{slug}")]
+        for slug, cls in SOLO_REGISTRY.items()
+    ]
+    await update.message.reply_text(
+        "🎮 <b>Соло-игры</b>\nВыбери, во что сыграем:",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(rows),
+    )
+
+
+async def on_choose_solo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer()
+    slug = query.data.split(":", 1)[1]
+    chat_id = query.message.chat.id
+    cls = SOLO_REGISTRY.get(slug)
+    if not cls or rooms.has_active(chat_id):
+        await query.edit_message_text("Не получилось начать. Напиши /play заново.")
+        return
+    host = _player_from_user(query.from_user)
+    game = cls(chat_id, host)
+    rooms.set(chat_id, game)
+    await query.edit_message_text(f"▶️ Запускаю: <b>{cls.title}</b>", parse_mode="HTML")
+    await game.start(context.bot)
 
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -346,16 +432,16 @@ async def cmd_go(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Текстовый ввод: Крокодил и Виселица
 # ======================================================================
 async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    if update.effective_chat.type == ChatType.PRIVATE:
-        return
     game = rooms.get(update.effective_chat.id)
     if game is None or game.phase != Phase.RUNNING:
         return
+    is_private = update.effective_chat.type == ChatType.PRIVATE
     player = _player_from_user(update.effective_user)
-    if isinstance(game, CrocodileGame):
-        await game.handle_guess(context.bot, player, update.message.text)
-    elif isinstance(game, HangmanGame):
+    if isinstance(game, HangmanGame):
+        # Виселица работает и в группе, и соло в ЛС
         await game.handle_input(context.bot, player, update.message.text)
+    elif isinstance(game, CrocodileGame) and not is_private:
+        await game.handle_guess(context.bot, player, update.message.text)
 
 
 async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -447,6 +533,56 @@ async def on_truthdare(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await query.answer()
     else:
         await query.answer("Сейчас не твой ход!", show_alert=True)
+
+
+# ======================================================================
+# Викторина (соло)
+# ======================================================================
+async def on_quiz_answer(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, QuizGame):
+        await query.answer()
+        return
+    await query.answer()
+    choice = int(query.data.split(":", 1)[1])
+    await game.answer(context.bot, query.from_user.id, choice)
+
+
+# ======================================================================
+# Мини-апп: приём данных (tg.sendData)
+# ======================================================================
+async def on_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    msg = update.effective_message
+    raw = msg.web_app_data.data if msg and msg.web_app_data else None
+    if not raw:
+        return
+    import json
+    try:
+        slug = json.loads(raw).get("game")
+    except (ValueError, AttributeError):
+        slug = None
+
+    chat_id = update.effective_chat.id
+    if slug in SOLO_REGISTRY and update.effective_chat.type == ChatType.PRIVATE:
+        if rooms.has_active(chat_id):
+            await msg.reply_text("У тебя уже идёт игра. Заверши её: /stop")
+            return
+        cls = SOLO_REGISTRY[slug]
+        game = cls(chat_id, _player_from_user(update.effective_user))
+        rooms.set(chat_id, game)
+        await msg.reply_text(f"▶️ Из мини-аппа запускаю: <b>{cls.title}</b>",
+                             parse_mode="HTML")
+        await game.start(context.bot)
+    elif slug in GAME_REGISTRY:
+        cls = GAME_REGISTRY[slug]
+        await msg.reply_text(
+            f"«{cls.title}» — игра для компании. Добавь меня в групповой чат "
+            f"и напиши там /newgame 👥",
+            parse_mode="HTML",
+        )
+    else:
+        await msg.reply_text("Не понял игру из мини-аппа. Попробуй /play или /newgame.")
 
 
 # ======================================================================
@@ -609,9 +745,10 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # Запуск
 # ======================================================================
 async def _post_init(app: Application) -> None:
-    """Прописывает меню команд (всплывает при вводе «/»)."""
+    """Прописывает меню команд (всплывает при вводе «/») и кнопку мини-аппа."""
     await app.bot.set_my_commands([
-        BotCommand("newgame", "Выбрать и создать игру"),
+        BotCommand("newgame", "Групповая игра"),
+        BotCommand("play", "Соло-игра в личке"),
         BotCommand("settings", "Настройки (лимиты игроков)"),
         BotCommand("go", "Начать игру"),
         BotCommand("stop", "Остановить игру"),
@@ -621,6 +758,15 @@ async def _post_init(app: Application) -> None:
         BotCommand("vote", "Бункер: голосование"),
         BotCommand("help", "Помощь"),
     ])
+    if WEBAPP_URL:
+        try:
+            await app.bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="🎮 Играть", web_app=WebAppInfo(url=WEBAPP_URL)
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Не удалось поставить кнопку мини-аппа: %s", exc)
 
 
 def build_application() -> Application:
@@ -629,6 +775,7 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("newgame", cmd_newgame))
+    app.add_handler(CommandHandler("play", cmd_play))
     app.add_handler(CommandHandler("settings", cmd_settings))
     app.add_handler(CommandHandler("go", cmd_go))
     app.add_handler(CommandHandler("stop", cmd_stop))
@@ -638,6 +785,8 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("vote", cmd_vote))
 
     app.add_handler(CallbackQueryHandler(on_choose_game, pattern=r"^ng:"))
+    app.add_handler(CallbackQueryHandler(on_choose_solo, pattern=r"^solo:"))
+    app.add_handler(CallbackQueryHandler(on_quiz_answer, pattern=r"^qz:"))
     app.add_handler(CallbackQueryHandler(on_settings_open, pattern=r"^settings$"))
     app.add_handler(CallbackQueryHandler(on_settings_change, pattern=r"^st:"))
     app.add_handler(CallbackQueryHandler(on_lobby_join, pattern=r"^lj$"))
@@ -657,6 +806,7 @@ def build_application() -> Application:
     app.add_handler(CallbackQueryHandler(on_mafia_day_resolve, pattern=r"^dres$"))
 
     app.add_handler(ChatMemberHandler(on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))
+    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_webapp_data))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     return app
 

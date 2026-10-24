@@ -1,165 +1,356 @@
-"""Генерация карточек-картинок для игр (через Pillow).
+"""Генерация картинок для LazyGame (Pillow).
 
-Каждая карточка персонажа «Бункера» рендерится в PNG, чтобы сообщение
-в чате было с фото, а не просто текстом.
+Всё рисуется на холсте ×2 с последующим уменьшением (LANCZOS) — это даёт
+сглаживание фигур и текста. Эмодзи в картинках не используем (Pillow рисует их
+«квадратиками»); вместо них — типографика и цветные акценты.
 """
 from __future__ import annotations
 
+import math
 import os
+import random
 from io import BytesIO
 
 from PIL import Image, ImageDraw, ImageFont
 
-WIDTH, HEIGHT = 900, 1200
-BG = (24, 26, 34)
-PANEL = (34, 37, 48)
-ACCENT = (255, 193, 59)
-TEXT = (235, 235, 240)
-MUTED = (150, 155, 170)
+# ---- палитра ----------------------------------------------------------
+BG_TOP = (33, 23, 64)
+BG_BOT = (12, 10, 24)
+PANEL = (46, 40, 70)
+PANEL2 = (58, 50, 86)
+STROKE = (96, 84, 140)
+TEXT = (237, 235, 247)
+MUTED = (168, 162, 196)
+
+VIOLET = (142, 112, 255)
+GOLD = (255, 206, 97)
+PINK = (255, 99, 146)
+GREEN = (86, 214, 160)
+CYAN = (80, 206, 232)
+RED = (240, 110, 110)
+
+# «тетрадная» бумага и карандаш для скетч-виселицы
+PAPER = (240, 236, 223)
+PAPER_LINE = (203, 214, 226)
+PENCIL = (46, 44, 52)
+
+# тема (акцент) для каждой игры по slug
+THEME = {
+    "crocodile": GREEN,
+    "bunker": GOLD,
+    "mafia": RED,
+    "hangman": CYAN,
+    "truthdare": PINK,
+    "quiz": VIOLET,
+}
+
+_FONT_CACHE: dict[tuple[int, bool], ImageFont.FreeTypeFont] = {}
 
 
 def _font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
-    """Пытаемся найти системный шрифт, иначе дефолтный Pillow."""
+    key = (size, bold)
+    if key in _FONT_CACHE:
+        return _FONT_CACHE[key]
     candidates = [
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf" if bold
         else "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
         "/System/Library/Fonts/Supplemental/Arial.ttf",
     ]
+    font: ImageFont.FreeTypeFont | None = None
     for path in candidates:
         if os.path.exists(path):
             try:
-                return ImageFont.truetype(path, size)
+                font = ImageFont.truetype(path, size)
+                break
             except OSError:
                 continue
-    return ImageFont.load_default()
+    if font is None:
+        font = ImageFont.load_default()
+    _FONT_CACHE[key] = font
+    return font
 
 
-def _wrap(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont,
-          max_width: int) -> list[str]:
-    words = text.split()
-    lines: list[str] = []
-    current = ""
-    for word in words:
-        trial = f"{current} {word}".strip()
-        if draw.textlength(trial, font=font) <= max_width:
-            current = trial
-        else:
-            if current:
-                lines.append(current)
-            current = word
-    if current:
-        lines.append(current)
-    return lines or [""]
+class Canvas:
+    """Обёртка над Pillow с суперсэмплингом: координаты задаются в «логических»
+    пикселях, рисуется на холсте ×ss, финал уменьшается с антиалиасингом."""
+
+    def __init__(self, w: int, h: int, ss: int = 2):
+        self.w, self.h, self.ss = w, h, ss
+        self.img = Image.new("RGB", (w * ss, h * ss), BG_BOT)
+        self.d = ImageDraw.Draw(self.img, "RGBA")
+
+    def gradient(self, top: tuple, bottom: tuple) -> None:
+        s = self.ss
+        H, W = self.h * s, self.w * s
+        for y in range(H):
+            t = y / max(1, H - 1)
+            self.d.line(
+                [(0, y), (W, y)],
+                fill=(
+                    int(top[0] + (bottom[0] - top[0]) * t),
+                    int(top[1] + (bottom[1] - top[1]) * t),
+                    int(top[2] + (bottom[2] - top[2]) * t),
+                ),
+            )
+
+    def circle(self, cx, cy, r, fill) -> None:
+        s = self.ss
+        self.d.ellipse([(cx - r) * s, (cy - r) * s, (cx + r) * s, (cy + r) * s], fill=fill)
+
+    def rrect(self, box, radius, fill=None, outline=None, width=1) -> None:
+        s = self.ss
+        self.d.rounded_rectangle(
+            [box[0] * s, box[1] * s, box[2] * s, box[3] * s],
+            radius=radius * s, fill=fill, outline=outline,
+            width=max(1, width * s),
+        )
+
+    def ellipse(self, box, fill=None, outline=None, width=1) -> None:
+        s = self.ss
+        self.d.ellipse([c * s for c in box], fill=fill, outline=outline, width=max(1, width * s))
+
+    def line(self, pts, fill, width=1) -> None:
+        s = self.ss
+        self.d.line([(x * s, y * s) for x, y in pts], fill=fill, width=max(1, width * s))
+
+    def text(self, pos, text, size, fill, bold=False) -> None:
+        s = self.ss
+        self.d.text((pos[0] * s, pos[1] * s), text, font=_font(size * s, bold), fill=fill)
+
+    def text_center(self, cx, y, text, size, fill, bold=False) -> None:
+        s = self.ss
+        f = _font(size * s, bold)
+        tw = self.d.textlength(text, font=f)
+        self.d.text((cx * s - tw / 2, y * s), text, font=f, fill=fill)
+
+    def textlen(self, text, size, bold=False) -> float:
+        return self.d.textlength(text, font=_font(size * self.ss, bold)) / self.ss
+
+    def wrap(self, text, size, max_w, bold=False) -> list[str]:
+        f = _font(size * self.ss, bold)
+        limit = max_w * self.ss
+        lines, cur = [], ""
+        for word in text.split():
+            trial = f"{cur} {word}".strip()
+            if self.d.textlength(trial, font=f) <= limit:
+                cur = trial
+            else:
+                if cur:
+                    lines.append(cur)
+                cur = word
+        if cur:
+            lines.append(cur)
+        return lines or [""]
+
+    def finalize(self, name="card.png") -> BytesIO:
+        out = self.img.resize((self.w, self.h), Image.LANCZOS)
+        buf = BytesIO()
+        out.save(buf, format="PNG")
+        buf.seek(0)
+        buf.name = name
+        return buf
 
 
+def _header(c: Canvas, badge: str, title: str, subtitle: str, accent: tuple,
+            x: int = 48, y: int = 48) -> None:
+    """Рисует шапку: цветной бейдж-монограмма + заголовок + подзаголовок."""
+    size = 92
+    c.rrect([x, y, x + size, y + size], radius=24, fill=accent)
+    c.text_center(x + size / 2, y + 20, badge, 46, (20, 16, 32), bold=True)
+    tx = x + size + 26
+    c.text((tx, y + 6), title, 42, TEXT, bold=True)
+    c.text((tx, y + 58), subtitle, 24, MUTED)
+
+
+# ======================================================================
+# Приветствие
+# ======================================================================
+def render_welcome(games: list[tuple[str, str]]) -> BytesIO:
+    """games: список (название, короткое_описание)."""
+    c = Canvas(1080, 1080)
+    c.gradient(BG_TOP, BG_BOT)
+    # декоративные круги
+    c.circle(930, 150, 220, (142, 112, 255, 38))
+    c.circle(150, 980, 260, (255, 99, 146, 30))
+    c.circle(980, 980, 160, (255, 206, 97, 26))
+
+    # монограмма
+    c.rrect([90, 90, 230, 230], radius=36, fill=VIOLET)
+    c.text_center(160, 120, "LG", 72, (18, 14, 30), bold=True)
+
+    c.text((262, 110), "LazyGame", 76, TEXT, bold=True)
+    c.text((266, 196), "Игры для компаний прямо в Telegram", 30, MUTED)
+
+    colors = [GREEN, GOLD, RED, CYAN, PINK, VIOLET]
+    y = 330
+    for i, (name, desc) in enumerate(games):
+        accent = colors[i % len(colors)]
+        c.rrect([90, y, 990, y + 108], radius=24, fill=PANEL)
+        c.rrect([90, y, 100, y + 108], radius=5, fill=accent)  # цветная полоска слева
+        c.circle(150, y + 54, 22, accent)
+        c.text((196, y + 22), name, 36, TEXT, bold=True)
+        c.text((196, y + 66), desc, 24, MUTED)
+        y += 124
+
+    c.text_center(540, 1016, "Напиши  /newgame  и выбери игру", 28, GOLD, bold=True)
+    return c.finalize("welcome.png")
+
+
+# ======================================================================
+# Карточка персонажа «Бункер»
+# ======================================================================
 def render_character_card(name: str, attrs: dict[str, str],
                           reveal_order: list[tuple[str, str]]) -> BytesIO:
-    """Рисует карточку персонажа «Бункера» и возвращает PNG в BytesIO."""
-    img = Image.new("RGB", (WIDTH, HEIGHT), BG)
-    draw = ImageDraw.Draw(img)
+    accent = THEME["bunker"]
+    c = Canvas(900, 1240)
+    c.gradient(BG_TOP, BG_BOT)
+    c.circle(820, 120, 160, (255, 206, 97, 26))
 
-    title_font = _font(54, bold=True)
-    label_font = _font(30, bold=True)
-    value_font = _font(34)
+    _header(c, "B", "БУНКЕР", name, accent)
 
-    # Шапка
-    draw.rectangle([0, 0, WIDTH, 140], fill=PANEL)
-    draw.text((40, 35), "🏚 БУНКЕР", font=title_font, fill=ACCENT)
-    draw.text((40, 100), name, font=label_font, fill=MUTED)
-
-    y = 180
-    margin = 40
-    panel_w = WIDTH - margin * 2
+    y = 192
+    margin = 48
+    panel_w = c.w - margin * 2
     for key, label in reveal_order:
         value = attrs.get(key, "—")
-        value_lines = _wrap(draw, value, value_font, panel_w - 40)
-        block_h = 60 + len(value_lines) * 42 + 20
+        lines = c.wrap(value, 30, panel_w - 48)
+        block_h = 58 + len(lines) * 38 + 18
+        c.rrect([margin, y, margin + panel_w, y + block_h], radius=18, fill=PANEL)
+        c.rrect([margin, y, margin + 8, y + block_h], radius=4, fill=accent)
+        c.text((margin + 28, y + 14), label.upper(), 22, accent, bold=True)
+        ty = y + 52
+        for line in lines:
+            c.text((margin + 28, ty), line, 30, TEXT)
+            ty += 38
+        y += block_h + 14
 
-        draw.rounded_rectangle(
-            [margin, y, margin + panel_w, y + block_h],
-            radius=16, fill=PANEL,
-        )
-        draw.text((margin + 20, y + 14), label.upper(), font=label_font, fill=ACCENT)
-        ty = y + 56
-        for line in value_lines:
-            draw.text((margin + 20, ty), line, font=value_font, fill=TEXT)
-            ty += 42
-        y += block_h + 16
+    return c.finalize("bunker.png")
 
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    buffer.seek(0)
-    buffer.name = "card.png"
-    return buffer
+
+# ======================================================================
+# Карточка слова «Крокодил»
+# ======================================================================
+def render_word_card(word: str, difficulty: str) -> BytesIO:
+    accent = THEME["crocodile"]
+    c = Canvas(900, 540)
+    c.gradient(BG_TOP, BG_BOT)
+    c.circle(800, 460, 180, (86, 214, 160, 28))
+
+    _header(c, "C", "КРОКОДИЛ", "твоё слово — объясни, не называя", accent)
+
+    c.rrect([48, 210, 852, 400], radius=28, fill=PANEL)
+    c.text_center(450, 258, word.upper(), 76, accent, bold=True)
+
+    diff_map = {"easy": "лёгкое", "medium": "среднее", "hard": "сложное"}
+    c.text((48, 450), f"Сложность: {diff_map.get(difficulty, difficulty)}", 26, MUTED)
+    c.text((48, 486), "Однокоренные слова называть нельзя!", 24, MUTED)
+    return c.finalize("word.png")
+
+
+# ======================================================================
+# Виселица
+# ======================================================================
+def _letter_tiles(c: Canvas, text: str, x: int, y: int, accent: tuple,
+                  tile: int = 56, gap: int = 10) -> None:
+    for i, ch in enumerate(text.upper()):
+        bx = x + i * (tile + gap)
+        if ch == "_":
+            c.rrect([bx, y, bx + tile, y + tile], radius=12, fill=PANEL2)
+            c.line([(bx + 12, y + tile - 12), (bx + tile - 12, y + tile - 12)], accent, 4)
+        else:
+            c.rrect([bx, y, bx + tile, y + tile], radius=12, fill=accent)
+            c.text_center(bx + tile / 2, y + 10, ch, 34, (18, 14, 30), bold=True)
+
+
+def _sk_seg(c: Canvas, p1, p2, rng: random.Random, color=PENCIL, width=3,
+           jitter=3.5, passes=2) -> None:
+    """Один «карандашный» отрезок: несколько проходов с дрожанием."""
+    (x1, y1), (x2, y2) = p1, p2
+    for _ in range(passes):
+        n = 4
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            pts.append((
+                x1 + (x2 - x1) * t + rng.uniform(-jitter, jitter),
+                y1 + (y2 - y1) * t + rng.uniform(-jitter, jitter),
+            ))
+        c.line(pts, color, width)
+
+
+def _sk_path(c: Canvas, pts, rng: random.Random, **kw) -> None:
+    for i in range(len(pts) - 1):
+        _sk_seg(c, pts[i], pts[i + 1], rng, **kw)
+
+
+def _sk_circle(c: Canvas, cx, cy, r, rng: random.Random, color=PENCIL, width=3,
+               jitter=2.5, passes=2) -> None:
+    for _ in range(passes):
+        n = 24
+        start = rng.uniform(0, 0.6)
+        pts = []
+        for i in range(n + 1):
+            a = start + i / n * 2 * math.pi * 1.04
+            pts.append((
+                cx + math.cos(a) * r + rng.uniform(-jitter, jitter),
+                cy + math.sin(a) * r + rng.uniform(-jitter, jitter),
+            ))
+        c.line(pts, color, width)
 
 
 def render_hangman(masked: str, wrong_letters: list[str], stage: int,
                    max_stage: int = 6) -> BytesIO:
-    """Рисует виселицу на этапе `stage` и текущее состояние слова."""
-    img = Image.new("RGB", (700, 700), BG)
-    draw = ImageDraw.Draw(img)
-    line = (200, 205, 220)
-    body = ACCENT
+    accent = THEME["hangman"]
+    c = Canvas(760, 880)
+    c.gradient(BG_TOP, BG_BOT)
+    # один и тот же «почерк» для всех этапов одного слова
+    rng = random.Random(1000 + len(masked) * 7 + max_stage)
 
-    # стойка виселицы
-    draw.line([(120, 620), (420, 620)], fill=line, width=8)   # основание
-    draw.line([(200, 620), (200, 80)], fill=line, width=8)    # столб
-    draw.line([(200, 80), (430, 80)], fill=line, width=8)     # перекладина
-    draw.line([(430, 80), (430, 140)], fill=line, width=6)    # верёвка
+    _header(c, "H", "ВИСЕЛИЦА", f"ошибок: {stage}/{max_stage}", accent)
 
-    cx, cy = 430, 185  # центр головы
-    if stage >= 1:  # голова
-        draw.ellipse([cx - 45, cy - 45, cx + 45, cy + 45], outline=body, width=6)
-    if stage >= 2:  # туловище
-        draw.line([(cx, cy + 45), (cx, cy + 230)], fill=body, width=6)
-    if stage >= 3:  # левая рука
-        draw.line([(cx, cy + 90), (cx - 70, cy + 160)], fill=body, width=6)
-    if stage >= 4:  # правая рука
-        draw.line([(cx, cy + 90), (cx + 70, cy + 160)], fill=body, width=6)
-    if stage >= 5:  # левая нога
-        draw.line([(cx, cy + 230), (cx - 60, cy + 330)], fill=body, width=6)
-    if stage >= 6:  # правая нога
-        draw.line([(cx, cy + 230), (cx + 60, cy + 330)], fill=body, width=6)
+    # лист бумаги
+    c.rrect([60, 168, 700, 690], radius=22, fill=PAPER)
+    for ly in range(220, 690, 46):
+        c.line([(84, ly), (676, ly)], PAPER_LINE, 1)
+    c.line([(150, 176), (150, 682)], (233, 175, 175), 2)  # поля тетради
 
-    word_font = _font(46, bold=True)
-    small_font = _font(30)
-    spaced = "  ".join(masked.upper())
-    draw.text((40, 630), spaced, font=word_font, fill=TEXT)
+    # виселица карандашом
+    _sk_path(c, [(180, 650), (470, 650)], rng, width=4)           # основание
+    _sk_path(c, [(230, 650), (230, 250)], rng, width=4)           # столб
+    _sk_path(c, [(228, 250), (472, 250)], rng, width=4)           # перекладина
+    _sk_path(c, [(470, 250), (470, 300)], rng, width=3, jitter=2.5)  # верёвка
+
+    cx, cy = 470, 336
+    if stage >= 1:
+        _sk_circle(c, cx, cy, 34, rng)                             # голова
+    if stage >= 2:
+        _sk_path(c, [(cx, cy + 34), (cx, cy + 170)], rng, width=4)  # туловище
+    if stage >= 3:
+        _sk_path(c, [(cx, cy + 70), (cx - 58, cy + 128)], rng, width=4)  # рука
+    if stage >= 4:
+        _sk_path(c, [(cx, cy + 70), (cx + 58, cy + 128)], rng, width=4)  # рука
+    if stage >= 5:
+        _sk_path(c, [(cx, cy + 170), (cx - 50, cy + 250)], rng, width=4)  # нога
+    if stage >= 6:
+        _sk_path(c, [(cx, cy + 170), (cx + 50, cy + 250)], rng, width=4)  # нога
+        # грустное лицо, когда проиграли
+        _sk_circle(c, cx - 12, cy - 6, 3, rng, width=2, jitter=1)
+        _sk_circle(c, cx + 12, cy - 6, 3, rng, width=2, jitter=1)
+        _sk_path(c, [(cx - 13, cy + 18), (cx, cy + 10), (cx + 13, cy + 18)], rng,
+                 width=2, jitter=1.5)
+
+    # слово плитками (перенос при длинном)
+    per_row = 11
+    tile, gap = 52, 8
+    chars = list(masked)
+    start_y = 724
+    for row in range((len(chars) + per_row - 1) // per_row):
+        chunk = "".join(chars[row * per_row:(row + 1) * per_row])
+        row_w = len(chunk) * (tile + gap) - gap
+        _letter_tiles(c, chunk, int((c.w - row_w) / 2), start_y + row * (tile + gap),
+                      accent, tile, gap)
+
     if wrong_letters:
-        draw.text((40, 30), "Ошибки: " + " ".join(l.upper() for l in wrong_letters),
-                  font=small_font, fill=(230, 120, 120))
-
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    buffer.seek(0)
-    buffer.name = "hangman.png"
-    return buffer
-
-
-def render_word_card(word: str, difficulty: str) -> BytesIO:
-    """Карточка со словом для «Крокодила» (показывается только ведущему в ЛС)."""
-    img = Image.new("RGB", (WIDTH, 500), BG)
-    draw = ImageDraw.Draw(img)
-
-    label_font = _font(36, bold=True)
-    word_font = _font(72, bold=True)
-
-    draw.text((40, 50), "🐊 КРОКОДИЛ — твоё слово:", font=label_font, fill=ACCENT)
-
-    lines = _wrap(draw, word.upper(), word_font, WIDTH - 80)
-    y = 200
-    for line in lines:
-        w = draw.textlength(line, font=word_font)
-        draw.text(((WIDTH - w) / 2, y), line, font=word_font, fill=TEXT)
-        y += 90
-
-    diff_map = {"easy": "лёгкое", "medium": "среднее", "hard": "сложное"}
-    draw.text((40, 420), f"Сложность: {diff_map.get(difficulty, difficulty)}",
-              font=label_font, fill=MUTED)
-
-    buffer = BytesIO()
-    img.save(buffer, format="PNG")
-    buffer.seek(0)
-    buffer.name = "word.png"
-    return buffer
+        c.text((176, 150), "Ошибки: " + " ".join(l.upper() for l in wrong_letters), 24, RED)
+    return c.finalize("hangman.png")
