@@ -56,7 +56,8 @@ from .settings import settings
 from .stats import stats
 
 # игры, у которых контент пока только на русском
-RU_CONTENT_GAMES = {"bunker", "mafia", "truthdare"}
+RU_CONTENT_GAMES = {"bunker", "mafia", "truthdare", "spy"}
+MODE_GAMES = {"spy"}  # игры, где перед стартом выбирают режим
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
@@ -348,7 +349,7 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/settings — настройки (лимиты игроков)\n"
         "/go — начать игру (ведущий)\n"
         "/stop — остановить игру (ведущий)\n\n"
-        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Виселица, Правда/Действие\n"
+        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Виселица, Правда/Действие, Шпион\n"
         "<b>🙂 Соло в ЛС:</b> Виселица, Викторина, Угадай число, Камень-ножницы-бумага\n\n"
         "<b>Крокодил:</b> /skip — пропустить слово, /score — счёт\n"
         "<b>Бункер:</b> /reveal — раскрыть характеристику, /vote — голосование\n"
@@ -406,11 +407,23 @@ async def on_choose_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await query.edit_message_text(t(lang, "choose_game"), reply_markup=_game_menu_markup(lang))
 
 
-async def _create_group_lobby(context, query, chat_id, slug, lang, difficulty=None) -> None:
+def _mode_markup(lang: str, slug: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("🕵️ Шпион знает, что он шпион",
+                              callback_data=f"nm:{slug}:known")],
+        [InlineKeyboardButton("🙈 Шпион не знает, что он шпион",
+                              callback_data=f"nm:{slug}:unknown")],
+    ])
+
+
+async def _create_group_lobby(context, query, chat_id, slug, lang,
+                              difficulty=None, mode=None) -> None:
     cls = GAME_REGISTRY[slug]
     host = _player_from_user(query.from_user)
     if slug in DIFFICULTY_GAMES:
         game = cls(chat_id, host, lang, difficulty or "medium")
+    elif slug in MODE_GAMES:
+        game = cls(chat_id, host, lang, mode or "known")
     else:
         game = cls(chat_id, host, lang)
     game.max_players = _max_for(chat_id, cls)
@@ -439,7 +452,25 @@ async def on_choose_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.edit_message_text(t(lang, "choose_diff"),
                                       reply_markup=_diff_markup(lang, "nd", slug))
         return
+    if slug in MODE_GAMES:  # режим для Шпиона
+        await query.edit_message_text("🎭 Выбери режим:",
+                                      reply_markup=_mode_markup(lang, slug))
+        return
     await _create_group_lobby(context, query, chat_id, slug, lang)
+
+
+async def on_newgame_mode(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    if await _deny_foreign(query):
+        return
+    await query.answer()
+    _, slug, mode = query.data.split(":")
+    chat_id = query.message.chat.id
+    lang = settings.get_lang(chat_id)
+    if rooms.has_active(chat_id):
+        await query.edit_message_text(t(lang, "already_active"))
+        return
+    await _create_group_lobby(context, query, chat_id, slug, lang, mode=mode)
 
 
 async def on_newgame_diff(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -785,6 +816,75 @@ async def on_rps(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ======================================================================
+# Шпион
+# ======================================================================
+async def on_spy_vote_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, SpyGame):
+        await query.answer()
+        return
+    if query.from_user.id != game.host.user_id:
+        await query.answer(t(game.lang, "only_host"), show_alert=True)
+        return
+    if not game.start_vote():
+        await query.answer()
+        return
+    await query.answer()
+    buttons = [[InlineKeyboardButton(p.name, callback_data=f"sv:{p.user_id}")]
+               for p in game.alive_players()]
+    buttons.append([InlineKeyboardButton("🏁 Завершить голосование", callback_data="svend")])
+    await context.bot.send_message(
+        game.chat_id, "🗳 Кто шпион? Голосуют все:",
+        reply_markup=InlineKeyboardMarkup(buttons))
+
+
+async def on_spy_vote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, SpyGame):
+        await query.answer()
+        return
+    target_id = int(query.data.split(":", 1)[1])
+    if game.register_vote(query.from_user.id, target_id):
+        await query.answer(f"Голос за {game.players[target_id].name}")
+        if game.all_voted():
+            await game.finish_vote(context.bot)
+    else:
+        await query.answer("Голос не принят.")
+
+
+async def on_spy_vote_end(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, SpyGame):
+        await query.answer()
+        return
+    if query.from_user.id != game.host.user_id:
+        await query.answer(t(game.lang, "only_host"), show_alert=True)
+        return
+    await query.answer()
+    await game.finish_vote(context.bot)
+
+
+async def on_spy_guess(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    # кнопка приходит в ЛС шпиону — ищем его активную игру
+    game = None
+    for cid in list(rooms._rooms):  # noqa: SLF001
+        g = rooms.get(cid)
+        if isinstance(g, SpyGame) and g.await_guess and query.from_user.id == g.spy_id:
+            game = g
+            break
+    if game is None:
+        await query.answer()
+        return
+    await query.answer()
+    idx = int(query.data.split(":", 1)[1])
+    await game.spy_guess(context.bot, idx)
+
+
+# ======================================================================
 # Мини-апп: приём данных (tg.sendData)
 # ======================================================================
 async def on_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -1114,6 +1214,11 @@ def build_application() -> Application:
     app.add_handler(CallbackQueryHandler(on_quiz_answer, pattern=r"^qz:"))
     app.add_handler(CallbackQueryHandler(on_rps, pattern=r"^rps:"))
     app.add_handler(CallbackQueryHandler(on_croc_replace, pattern=r"^cnew$"))
+    app.add_handler(CallbackQueryHandler(on_newgame_mode, pattern=r"^nm:"))
+    app.add_handler(CallbackQueryHandler(on_spy_vote_start, pattern=r"^svstart$"))
+    app.add_handler(CallbackQueryHandler(on_spy_vote_end, pattern=r"^svend$"))
+    app.add_handler(CallbackQueryHandler(on_spy_vote, pattern=r"^sv:"))
+    app.add_handler(CallbackQueryHandler(on_spy_guess, pattern=r"^sg:"))
     app.add_handler(CallbackQueryHandler(on_settings_open, pattern=r"^settings$"))
     app.add_handler(CallbackQueryHandler(on_settings_change, pattern=r"^st:"))
     app.add_handler(CallbackQueryHandler(on_lobby_join, pattern=r"^lj$"))

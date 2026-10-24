@@ -263,6 +263,37 @@ def render_admin_panel(data: dict) -> BytesIO:
     return c.finalize("admin.png")
 
 
+def render_brawler_card(ru_name: str, rarity: str) -> BytesIO:
+    """Нейтральная карточка-заглушка с именем бравлера (без изображения персонажа).
+
+    Используется, только если нет оригинального арта в assets/brawlers/.
+    """
+    from .data.brawl import RARITY_COLOR
+    accent = RARITY_COLOR.get(rarity, VIOLET)
+    c = Canvas(720, 900)
+    top = tuple(min(255, int(ch * 0.55 + 40)) for ch in accent)
+    c.gradient(top, BG_BOT)
+    c.circle(600, 120, 150, (*accent, 40))
+
+    c.text_center(360, 54, "BRAWL STARS · ШПИОН", 26, (20, 16, 32), bold=True)
+
+    # круг с монограммой (первая буква имени) — не изображение персонажа
+    c.circle(360, 360, 150, PANEL)
+    c.ellipse([210, 210, 510, 510], outline=accent, width=10)
+    letter = (ru_name.strip() or "?")[0].upper()
+    c.text_center(360, 282, letter, 150, accent, bold=True)
+
+    c.text_center(360, 560, ru_name, 60, TEXT, bold=True)
+
+    pill_w = max(240, c.textlen(rarity, 30, bold=True) + 80)
+    px = 360 - pill_w / 2
+    c.rrect([px, 660, px + pill_w, 724], radius=32, fill=accent)
+    c.text_center(360, 674, rarity, 30, (20, 16, 32), bold=True)
+
+    c.text_center(360, 820, "неофициальный фан-проект", 22, MUTED)
+    return c.finalize("brawler.png")
+
+
 def render_avatar() -> BytesIO:
     """Квадратная аватарка бота (Telegram обрежет в круг — важное в центре)."""
     c = Canvas(640, 640)

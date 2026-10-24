@@ -18,6 +18,11 @@ lazygame/assets/generated/
 lazygame/data/stats.json
 lazygame/data/stats.json.tmp
 
+# Скачанные арты бравлеров — собственность Supercell, в репозиторий не коммитим
+lazygame/assets/brawlers/*.png
+lazygame/assets/brawlers/*.webp
+lazygame/assets/brawlers/*.jpg
+
 # OS / editor
 .DS_Store
 .idea/

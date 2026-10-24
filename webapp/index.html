@@ -67,6 +67,11 @@
   <div class="grid" id="grid"></div>
   <button class="playbtn" id="playbtn"></button>
   <p class="hint" id="hint"></p>
+  <p class="hint" style="margin-top:14px;opacity:.8">
+    Неофициальный фан-проект. Brawl Stars и изображения персонажей —
+    собственность Supercell, используются по Fan Content Policy.
+    Проект не создан и не одобрен Supercell.
+  </p>
 
 <script>
 const GAMES = [
@@ -80,6 +85,8 @@ const GAMES = [
    desc:"Угадай слово по буквам", rules:"Бот загадывает слово, вы называете буквы. За ошибку достраивается виселица. Можно играть соло в личке или компанией."},
   {slug:"truthdare", name:"Правда или Действие", type:"group", color:"var(--pink)",
    desc:"Выбери и выполни", rules:"Бот выбирает игрока, тот жмёт «Правда» или «Действие» и получает задание. Ход передаётся дальше."},
+  {slug:"spy", name:"Шпион (Brawl Stars)", type:"group", color:"var(--violet)",
+   desc:"Найди шпиона среди своих", rules:"Все, кроме шпиона, получают одного бравлера Brawl Stars. Намекайте на него, не называя, и вычислите шпиона голосованием. Два режима: шпион знает / не знает, что он шпион."},
   {slug:"quiz", name:"Викторина", type:"solo", color:"var(--violet)",
    desc:"Проверь эрудицию соло", rules:"7 вопросов с вариантами ответов. Отвечай кнопками и набирай очки. Играется в личке с ботом."},
   {slug:"guessnum", name:"Угадай число", type:"solo", color:"var(--green)",
