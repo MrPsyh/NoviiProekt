@@ -1,0 +1,20 @@
+# Secrets — NEVER commit the real token
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Generated card images
+lazygame/assets/generated/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
