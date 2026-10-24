@@ -14,9 +14,12 @@ env/
 # Generated card images
 lazygame/assets/generated/
 
-# Runtime stats
+# Runtime data (persistent storage)
 lazygame/data/stats.json
 lazygame/data/stats.json.tmp
+lazygame/data/lazygame.db
+lazygame/data/lazygame.db-wal
+lazygame/data/lazygame.db-shm
 
 # Скачанные арты бравлеров — собственность Supercell, в репозиторий не коммитим
 lazygame/assets/brawlers/*.png

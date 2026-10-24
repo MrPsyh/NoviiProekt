@@ -113,6 +113,8 @@ def _player_from_user(user) -> Player:
 
 
 DIFFICULTY_GAMES = {"crocodile", "hangman", "anagram"}
+GAME_MAX_AGE = 3 * 3600     # сек: после этого зависшая игра авто-очищается
+SWEEP_EVERY = 300           # как часто подметать зависшие игры
 LOBBY_TIMEOUT = 90          # сек на набор игроков
 MENU_CD = 30                # сек между открытиями меню одним человеком
 MUTE_SECONDS = 60           # мут постороннего, писавшего во время закрытой игры
@@ -164,6 +166,30 @@ async def _lobby_timeout(context, game) -> None:
         rooms.clear(game.chat_id)
         await context.bot.send_message(
             game.chat_id, t(game.lang, "lobby_cancelled", n=game.min_players))
+
+
+async def _sweep_loop(app) -> None:
+    """Периодически убирает завершённые и зависшие игры (защита от утечек)."""
+    while True:
+        try:
+            await asyncio.sleep(SWEEP_EVERY)
+            for cid in list(rooms._rooms):  # noqa: SLF001
+                game = rooms.get(cid)
+                if game is None:
+                    continue
+                stale = (game.phase == Phase.FINISHED
+                         or (time.time() - game.created_at) > GAME_MAX_AGE)
+                if stale:
+                    if getattr(game, "_pinned", False):
+                        try:
+                            await app.bot.unpin_chat_message(cid, game._lobby_msg_id)
+                        except Exception:
+                            pass
+                    rooms.clear(cid)
+        except asyncio.CancelledError:
+            return
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("sweep error: %s", exc)
 
 
 def _cancel_lobby_timer(game) -> None:
@@ -1330,6 +1356,8 @@ async def _post_init(app: Application) -> None:
             )
         except Exception as exc:  # noqa: BLE001
             logger.warning("Не удалось поставить кнопку мини-аппа: %s", exc)
+    # фоновая очистка зависших игр
+    asyncio.create_task(_sweep_loop(app))
 
 
 async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:

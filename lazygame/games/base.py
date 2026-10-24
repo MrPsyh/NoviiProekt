@@ -1,6 +1,7 @@
 """Базовые классы игрового движка: игрок, комната, менеджер комнат."""
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 
@@ -45,6 +46,7 @@ class BaseGame:
         self.lang = lang
         self.phase = Phase.LOBBY
         self.players: dict[int, Player] = {host.user_id: host}
+        self.created_at = time.time()
 
     # --- лобби ---------------------------------------------------------
     def add_player(self, player: Player) -> bool:

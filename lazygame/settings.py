@@ -1,32 +1,28 @@
-"""Настройки на уровне группового чата (лимиты игроков и т.п.).
+"""Настройки на уровне группового чата (лимиты игроков и язык).
 
-Хранятся в памяти процесса — как и игровые комнаты. Для продакшена можно
-заменить на БД, интерфейс (get_max/set_max) при этом не изменится.
+Данные хранятся в SQLite (см. storage.py), поэтому переживают перезапуск бота.
+Публичный API не изменился.
 """
 from __future__ import annotations
+
+from . import storage
 
 # пресеты максимума игроков, по которым «пролистывается» настройка
 MAX_PRESETS = [8, 10, 12, 15, 20, 25, 30, 35]
 
 
 class GroupSettings:
-    def __init__(self) -> None:
-        # chat_id -> {slug: max_players}
-        self._max: dict[int, dict[str, int]] = {}
-        # chat_id -> код языка ("ru" / "en" / "uk")
-        self._lang: dict[int, str] = {}
-
     def get_max(self, chat_id: int, slug: str, default: int) -> int:
-        return self._max.get(chat_id, {}).get(slug, default)
+        return storage.get_maxes(chat_id).get(slug, default)
 
     def set_max(self, chat_id: int, slug: str, value: int) -> None:
-        self._max.setdefault(chat_id, {})[slug] = value
+        storage.set_max(chat_id, slug, value)
 
     def get_lang(self, chat_id: int, default: str = "ru") -> str:
-        return self._lang.get(chat_id, default)
+        return storage.get_lang(chat_id) or default
 
     def set_lang(self, chat_id: int, lang: str) -> None:
-        self._lang[chat_id] = lang
+        storage.set_lang(chat_id, lang)
 
     def cycle_max(self, chat_id: int, slug: str, current: int,
                   hard_cap: int, floor: int) -> int:
@@ -35,8 +31,7 @@ class GroupSettings:
         if not allowed:
             allowed = [hard_cap]
         try:
-            idx = allowed.index(current)
-            nxt = allowed[(idx + 1) % len(allowed)]
+            nxt = allowed[(allowed.index(current) + 1) % len(allowed)]
         except ValueError:
             nxt = allowed[0]
         self.set_max(chat_id, slug, nxt)
