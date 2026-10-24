@@ -37,19 +37,25 @@ from telegram.ext import (
 from .cards import render_admin_panel, render_welcome
 from .config import ADMIN_ID, BOT_TOKEN, WEBAPP_URL
 from .games import (
+    AnagramGame,
     BunkerGame,
     CrocodileGame,
     GAME_REGISTRY,
     GuessNumberGame,
     HangmanGame,
     MafiaGame,
+    MemoryGame,
+    NeverGame,
     Phase,
     Player,
     QuizGame,
+    ReactionGame,
     RoomManager,
     RPSGame,
     SOLO_REGISTRY,
+    SpyGame,
     TruthOrDareGame,
+    WhoisGame,
 )
 from .i18n import LANGUAGES, t
 from .settings import settings
@@ -106,7 +112,7 @@ def _player_from_user(user) -> Player:
     return Player(user_id=user.id, name=name)
 
 
-DIFFICULTY_GAMES = {"crocodile", "hangman"}
+DIFFICULTY_GAMES = {"crocodile", "hangman", "anagram"}
 LOBBY_TIMEOUT = 90          # сек на набор игроков
 MENU_CD = 30                # сек между открытиями меню одним человеком
 MUTE_SECONDS = 60           # мут постороннего, писавшего во время закрытой игры
@@ -375,8 +381,10 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/settings — настройки (лимиты игроков)\n"
         "/go — начать игру (ведущий)\n"
         "/stop — остановить игру (ведущий)\n\n"
-        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Виселица, Правда/Действие, Шпион\n"
-        "<b>🙂 Соло в ЛС:</b> Виселица, Викторина, Угадай число, Камень-ножницы-бумага\n\n"
+        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Виселица, Правда/Действие, "
+        "Шпион, Реакция, Кто из нас?, Я никогда не…\n"
+        "<b>🙂 Соло в ЛС:</b> Виселица, Викторина, Угадай число, Камень-ножницы-бумага, "
+        "Повтори, Анаграммы\n\n"
         "<b>Крокодил:</b> /skip — пропустить слово, /score — счёт\n"
         "<b>Бункер:</b> /reveal — раскрыть характеристику, /vote — голосование\n"
         "<b>Виселица:</b> пишите буквы в чат (10 попыток)\n"
@@ -738,7 +746,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if isinstance(game, HangmanGame):
         # Виселица работает и в группе, и соло в ЛС
         await game.handle_input(context.bot, player, update.message.text)
-    elif isinstance(game, GuessNumberGame) and is_private:
+    elif isinstance(game, (GuessNumberGame, AnagramGame)) and is_private:
         await game.handle_input(context.bot, player, update.message.text)
     elif isinstance(game, CrocodileGame) and not is_private:
         await game.handle_guess(context.bot, player, update.message.text)
@@ -748,6 +756,8 @@ async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     game = rooms.get(update.effective_chat.id)
     if isinstance(game, CrocodileGame):
         await game.skip_word(context.bot, update.effective_user.id)
+    elif isinstance(game, AnagramGame):
+        await game.skip(context.bot)
 
 
 async def on_croc_replace(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -940,6 +950,85 @@ async def on_spy_guess(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await query.answer()
     idx = int(query.data.split(":", 1)[1])
     await game.spy_guess(context.bot, idx)
+
+
+# ======================================================================
+# Реакция / Повтори / Кто из нас / Я никогда не
+# ======================================================================
+async def on_reaction(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, ReactionGame):
+        await query.answer()
+        return
+    result = game.press(query.from_user.id,
+                        query.from_user.full_name or query.from_user.first_name)
+    if result == "win":
+        await query.answer("⚡ Ты первый!")
+    elif result == "notin":
+        await query.answer("Ты не в игре.", show_alert=True)
+    else:
+        await query.answer("Поздно 🙂")
+
+
+async def on_memory(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, MemoryGame):
+        await query.answer()
+        return
+    await query.answer()
+    await game.tap(context.bot, int(query.data.split(":", 1)[1]))
+
+
+async def on_whois_vote(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, WhoisGame):
+        await query.answer()
+        return
+    target_id = int(query.data.split(":", 1)[1])
+    if game.register_vote(query.from_user.id, target_id):
+        await query.answer(f"Голос за {game.players[target_id].name}")
+    else:
+        await query.answer("Голос уже учтён.")
+
+
+async def on_whois_result(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, WhoisGame):
+        await query.answer()
+        return
+    if query.from_user.id != game.host.user_id:
+        await query.answer(t(game.lang, "only_host"), show_alert=True)
+        return
+    await query.answer()
+    await game.reveal(context.bot)
+
+
+async def on_never_react(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, NeverGame):
+        await query.answer()
+        return
+    kind = query.data.split(":", 1)[1]
+    game.react(query.from_user.id, kind)
+    await query.answer("🙋 Было" if kind == "yes" else "🙅 Не было")
+
+
+async def on_never_next(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, NeverGame):
+        await query.answer()
+        return
+    if query.from_user.id != game.host.user_id:
+        await query.answer(t(game.lang, "only_host"), show_alert=True)
+        return
+    await query.answer()
+    await game.reveal_next(context.bot)
 
 
 # ======================================================================
@@ -1278,6 +1367,12 @@ def build_application() -> Application:
     app.add_handler(CallbackQueryHandler(on_spy_vote_end, pattern=r"^svend$"))
     app.add_handler(CallbackQueryHandler(on_spy_vote, pattern=r"^sv:"))
     app.add_handler(CallbackQueryHandler(on_spy_guess, pattern=r"^sg:"))
+    app.add_handler(CallbackQueryHandler(on_reaction, pattern=r"^rx$"))
+    app.add_handler(CallbackQueryHandler(on_memory, pattern=r"^mem:"))
+    app.add_handler(CallbackQueryHandler(on_whois_vote, pattern=r"^wv:"))
+    app.add_handler(CallbackQueryHandler(on_whois_result, pattern=r"^wresult$"))
+    app.add_handler(CallbackQueryHandler(on_never_react, pattern=r"^nv:"))
+    app.add_handler(CallbackQueryHandler(on_never_next, pattern=r"^nnext$"))
     app.add_handler(CallbackQueryHandler(on_settings_open, pattern=r"^settings$"))
     app.add_handler(CallbackQueryHandler(on_settings_change, pattern=r"^st:"))
     app.add_handler(CallbackQueryHandler(on_lobby_join, pattern=r"^lj$"))
