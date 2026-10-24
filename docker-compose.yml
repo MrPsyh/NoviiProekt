@@ -1,0 +1,8 @@
+services:
+  lazygame:
+    build: .
+    restart: unless-stopped
+    environment:
+      # токен берётся из твоего .env рядом с этим файлом (в git не коммитится)
+      - BOT_TOKEN=${BOT_TOKEN}
+      - ADMIN_ID=${ADMIN_ID:-}

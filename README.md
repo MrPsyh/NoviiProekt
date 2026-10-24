@@ -62,6 +62,37 @@ python -m lazygame.bot
 - Если токен где-то засветился (чат, скриншот, лог) — сразу отзови его:
   **@BotFather → /mybots → твой бот → API Token → Revoke current token.**
 
+## 🚀 Деплой 24/7
+
+Бот должен крутиться постоянным процессом. Любой вариант ниже — токен задаётся
+только через переменную окружения `BOT_TOKEN`, в образ/репозиторий он не попадает.
+
+### Docker (локально или на VPS)
+```bash
+# положи токен в .env (BOT_TOKEN=...), затем:
+docker compose up -d --build        # запуск в фоне, автоперезапуск
+docker compose logs -f              # смотреть логи
+docker compose down                 # остановить
+```
+
+### VPS без Docker (systemd)
+```bash
+pip install -r requirements.txt
+# создай /etc/systemd/system/lazygame.service с ExecStart=.../python -m lazygame.bot
+# и Environment=BOT_TOKEN=..., затем:
+sudo systemctl enable --now lazygame
+```
+
+### Railway / Render (бесплатно, из GitHub)
+1. Подключи этот репозиторий.
+2. Тип сервиса — **Worker** (не Web): команда `python -m lazygame.bot`
+   (уже прописана в `Procfile`), либо собери по `Dockerfile`.
+3. В **Variables / Environment** добавь `BOT_TOKEN` со своим токеном.
+4. Деплой. Бот будет работать постоянно.
+
+> ⚠️ Запускай только **один** экземпляр бота на токен. Если бот крутится в двух
+> местах сразу, Telegram вернёт ошибку `409 Conflict`.
+
 ## Команды
 
 | Команда     | Что делает                                  |
@@ -91,6 +122,8 @@ lazygame/
     ├── mafia.py
     ├── hangman.py
     └── truth_or_dare.py
+
+Dockerfile · docker-compose.yml · Procfile   # файлы деплоя (в корне репозитория)
 ```
 
 Добавить новую игру: наследуй `BaseGame`, реализуй `start()` и зарегистрируй
