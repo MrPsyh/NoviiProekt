@@ -94,6 +94,49 @@ def render_character_card(name: str, attrs: dict[str, str],
     return buffer
 
 
+def render_hangman(masked: str, wrong_letters: list[str], stage: int,
+                   max_stage: int = 6) -> BytesIO:
+    """Рисует виселицу на этапе `stage` и текущее состояние слова."""
+    img = Image.new("RGB", (700, 700), BG)
+    draw = ImageDraw.Draw(img)
+    line = (200, 205, 220)
+    body = ACCENT
+
+    # стойка виселицы
+    draw.line([(120, 620), (420, 620)], fill=line, width=8)   # основание
+    draw.line([(200, 620), (200, 80)], fill=line, width=8)    # столб
+    draw.line([(200, 80), (430, 80)], fill=line, width=8)     # перекладина
+    draw.line([(430, 80), (430, 140)], fill=line, width=6)    # верёвка
+
+    cx, cy = 430, 185  # центр головы
+    if stage >= 1:  # голова
+        draw.ellipse([cx - 45, cy - 45, cx + 45, cy + 45], outline=body, width=6)
+    if stage >= 2:  # туловище
+        draw.line([(cx, cy + 45), (cx, cy + 230)], fill=body, width=6)
+    if stage >= 3:  # левая рука
+        draw.line([(cx, cy + 90), (cx - 70, cy + 160)], fill=body, width=6)
+    if stage >= 4:  # правая рука
+        draw.line([(cx, cy + 90), (cx + 70, cy + 160)], fill=body, width=6)
+    if stage >= 5:  # левая нога
+        draw.line([(cx, cy + 230), (cx - 60, cy + 330)], fill=body, width=6)
+    if stage >= 6:  # правая нога
+        draw.line([(cx, cy + 230), (cx + 60, cy + 330)], fill=body, width=6)
+
+    word_font = _font(46, bold=True)
+    small_font = _font(30)
+    spaced = "  ".join(masked.upper())
+    draw.text((40, 630), spaced, font=word_font, fill=TEXT)
+    if wrong_letters:
+        draw.text((40, 30), "Ошибки: " + " ".join(l.upper() for l in wrong_letters),
+                  font=small_font, fill=(230, 120, 120))
+
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    buffer.name = "hangman.png"
+    return buffer
+
+
 def render_word_card(word: str, difficulty: str) -> BytesIO:
     """Карточка со словом для «Крокодила» (показывается только ведущему в ЛС)."""
     img = Image.new("RGB", (WIDTH, 500), BG)

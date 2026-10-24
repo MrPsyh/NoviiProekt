@@ -31,7 +31,7 @@ class MafiaGame(BaseGame):
     title = "🔪 Мафия"
     slug = "mafia"
     min_players = 4
-    max_players = 20
+    max_players = 35
 
     def __init__(self, chat_id: int, host: Player):
         super().__init__(chat_id, host)

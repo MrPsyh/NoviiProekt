@@ -21,7 +21,7 @@ class CrocodileGame(BaseGame):
     title = "🐊 Крокодил"
     slug = "crocodile"
     min_players = 2
-    max_players = 30
+    max_players = 35
 
     def __init__(self, chat_id: int, host: Player):
         super().__init__(chat_id, host)
