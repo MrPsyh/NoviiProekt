@@ -37,9 +37,10 @@ class BaseGame:
     min_players: int = 2
     max_players: int = 20
 
-    def __init__(self, chat_id: int, host: Player):
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
         self.chat_id = chat_id
         self.host = host
+        self.lang = lang
         self.phase = Phase.LOBBY
         self.players: dict[int, Player] = {host.user_id: host}
 
@@ -66,13 +67,19 @@ class BaseGame:
         )
 
     def lobby_text(self) -> str:
+        from ..i18n import LANGUAGES, t
         names = "\n".join(f"• {p.mention}" for p in self.players.values())
+        players_line = t(self.lang, "lobby_players", cur=len(self.players),
+                         max=self.max_players, min=self.min_players)
+        host_label = t(self.lang, "lobby_host")
+        lang_name = LANGUAGES.get(self.lang, self.lang)
         return (
-            f"<b>{self.title}</b>\n"
-            f"Игроков: {len(self.players)}/{self.max_players} "
-            f"(нужно минимум {self.min_players})\n\n"
-            f"{names}\n\n"
-            f"Ведущий: {self.host.mention}"
+            f"<b>{self.title}</b>  ·  {lang_name}\n"
+            f"{players_line}\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"{names}\n"
+            f"━━━━━━━━━━━━━━\n"
+            f"{host_label}: {self.host.mention}"
         )
 
 

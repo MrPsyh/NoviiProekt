@@ -13,12 +13,20 @@ class GroupSettings:
     def __init__(self) -> None:
         # chat_id -> {slug: max_players}
         self._max: dict[int, dict[str, int]] = {}
+        # chat_id -> код языка ("ru" / "en" / "uk")
+        self._lang: dict[int, str] = {}
 
     def get_max(self, chat_id: int, slug: str, default: int) -> int:
         return self._max.get(chat_id, {}).get(slug, default)
 
     def set_max(self, chat_id: int, slug: str, value: int) -> None:
         self._max.setdefault(chat_id, {})[slug] = value
+
+    def get_lang(self, chat_id: int, default: str = "ru") -> str:
+        return self._lang.get(chat_id, default)
+
+    def set_lang(self, chat_id: int, lang: str) -> None:
+        self._lang[chat_id] = lang
 
     def cycle_max(self, chat_id: int, slug: str, current: int,
                   hard_cap: int, floor: int) -> int:

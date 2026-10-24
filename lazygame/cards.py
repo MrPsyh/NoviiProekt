@@ -167,34 +167,60 @@ def _header(c: Canvas, badge: str, title: str, subtitle: str, accent: tuple,
 # Приветствие
 # ======================================================================
 def render_welcome(games: list[tuple[str, str]]) -> BytesIO:
-    """games: список (название, короткое_описание)."""
-    c = Canvas(1080, 1080)
+    """Горизонтальное приветствие. games: список (название, короткое_описание)."""
+    c = Canvas(1200, 675)
     c.gradient(BG_TOP, BG_BOT)
-    # декоративные круги
-    c.circle(930, 150, 220, (142, 112, 255, 38))
-    c.circle(150, 980, 260, (255, 99, 146, 30))
-    c.circle(980, 980, 160, (255, 206, 97, 26))
+    c.circle(1080, 90, 200, (142, 112, 255, 36))
+    c.circle(90, 640, 220, (255, 99, 146, 28))
+    c.circle(1120, 660, 150, (255, 206, 97, 24))
 
-    # монограмма
-    c.rrect([90, 90, 230, 230], radius=36, fill=VIOLET)
-    c.text_center(160, 120, "LG", 72, (18, 14, 30), bold=True)
+    # монограмма + заголовок
+    c.rrect([56, 46, 152, 142], radius=26, fill=VIOLET)
+    c.text_center(104, 66, "LG", 56, (18, 14, 30), bold=True)
+    c.text((172, 54), "LazyGame", 60, TEXT, bold=True)
+    c.text((176, 128), "Игры для компаний прямо в Telegram", 26, MUTED)
 
-    c.text((262, 110), "LazyGame", 76, TEXT, bold=True)
-    c.text((266, 196), "Игры для компаний прямо в Telegram", 30, MUTED)
-
+    # игры в 2 колонки × 3 ряда
     colors = [GREEN, GOLD, RED, CYAN, PINK, VIOLET]
-    y = 330
-    for i, (name, desc) in enumerate(games):
+    cols_x = [56, 622]
+    pill_w, pill_h = 522, 108
+    top, gap = 222, 18
+    for i, (name, desc) in enumerate(games[:6]):
+        col, row = i % 2, i // 2
+        x = cols_x[col]
+        y = top + row * (pill_h + gap)
         accent = colors[i % len(colors)]
-        c.rrect([90, y, 990, y + 108], radius=24, fill=PANEL)
-        c.rrect([90, y, 100, y + 108], radius=5, fill=accent)  # цветная полоска слева
-        c.circle(150, y + 54, 22, accent)
-        c.text((196, y + 22), name, 36, TEXT, bold=True)
-        c.text((196, y + 66), desc, 24, MUTED)
-        y += 124
+        c.rrect([x, y, x + pill_w, y + pill_h], radius=22, fill=PANEL)
+        c.rrect([x, y, x + 8, y + pill_h], radius=4, fill=accent)
+        c.circle(x + 50, y + 54, 20, accent)
+        c.text((x + 88, y + 20), name, 32, TEXT, bold=True)
+        c.text((x + 88, y + 62), desc, 23, MUTED)
 
-    c.text_center(540, 1016, "Напиши  /newgame  и выбери игру", 28, GOLD, bold=True)
+    c.text_center(600, 622, "Напиши /newgame и выбери игру", 28, GOLD, bold=True)
     return c.finalize("welcome.png")
+
+
+def render_avatar() -> BytesIO:
+    """Квадратная аватарка бота (Telegram обрежет в круг — важное в центре)."""
+    c = Canvas(640, 640)
+    # мягкий радиальный-подобный фон
+    c.gradient((120, 92, 230), (58, 40, 120))
+    c.circle(320, 320, 300, (255, 255, 255, 10))
+    c.circle(320, 320, 230, (255, 255, 255, 12))
+
+    # центральная «карточка» с монограммой
+    c.rrect([180, 150, 460, 430], radius=56, fill=(24, 18, 44))
+    c.text_center(320, 196, "LG", 150, GOLD, bold=True)
+
+    # цветные игровые «фишки» вокруг
+    c.circle(170, 180, 26, GREEN)
+    c.circle(470, 180, 26, CYAN)
+    c.circle(165, 470, 26, PINK)
+    c.circle(475, 470, 26, GOLD)
+
+    c.text_center(320, 470, "LazyGame", 46, TEXT, bold=True)
+    c.text_center(320, 530, "играй в компании", 26, (220, 214, 240))
+    return c.finalize("avatar.png")
 
 
 # ======================================================================
@@ -315,26 +341,36 @@ def render_hangman(masked: str, wrong_letters: list[str], stage: int,
         c.line([(84, ly), (676, ly)], PAPER_LINE, 1)
     c.line([(150, 176), (150, 682)], (233, 175, 175), 2)  # поля тетради
 
-    # виселица карандашом
-    _sk_path(c, [(180, 650), (470, 650)], rng, width=4)           # основание
-    _sk_path(c, [(230, 650), (230, 250)], rng, width=4)           # столб
-    _sk_path(c, [(228, 250), (472, 250)], rng, width=4)           # перекладина
-    _sk_path(c, [(470, 250), (470, 300)], rng, width=3, jitter=2.5)  # верёвка
+    # Виселица строится карандашом по мере ошибок (до 10 этапов).
+    # Чтобы при меньшем max_stage всё равно получалась полная картинка,
+    # масштабируем номера этапов постройки под фактический max_stage.
+    def on(step: int) -> bool:
+        # step — из 10; показываем, если ошибок набрали достаточно
+        return stage >= round(step * max_stage / 10)
 
     cx, cy = 470, 336
-    if stage >= 1:
-        _sk_circle(c, cx, cy, 34, rng)                             # голова
-    if stage >= 2:
-        _sk_path(c, [(cx, cy + 34), (cx, cy + 170)], rng, width=4)  # туловище
-    if stage >= 3:
-        _sk_path(c, [(cx, cy + 70), (cx - 58, cy + 128)], rng, width=4)  # рука
-    if stage >= 4:
-        _sk_path(c, [(cx, cy + 70), (cx + 58, cy + 128)], rng, width=4)  # рука
-    if stage >= 5:
-        _sk_path(c, [(cx, cy + 170), (cx - 50, cy + 250)], rng, width=4)  # нога
-    if stage >= 6:
-        _sk_path(c, [(cx, cy + 170), (cx + 50, cy + 250)], rng, width=4)  # нога
-        # грустное лицо, когда проиграли
+    if on(1):
+        _sk_path(c, [(180, 650), (470, 650)], rng, width=4)          # 1 основание
+    if on(2):
+        _sk_path(c, [(230, 650), (230, 250)], rng, width=4)          # 2 столб
+    if on(3):
+        _sk_path(c, [(228, 250), (472, 250)], rng, width=4)          # 3 перекладина
+    if on(4):
+        _sk_path(c, [(230, 320), (300, 250)], rng, width=3)          # 4 укосина
+    if on(5):
+        _sk_path(c, [(470, 250), (470, 302)], rng, width=3, jitter=2.5)  # 5 верёвка
+    if on(6):
+        _sk_circle(c, cx, cy, 34, rng)                               # 6 голова
+    if on(7):
+        _sk_path(c, [(cx, cy + 34), (cx, cy + 170)], rng, width=4)   # 7 туловище
+    if on(8):
+        _sk_path(c, [(cx, cy + 70), (cx - 58, cy + 128)], rng, width=4)  # 8 рука
+    if on(9):
+        _sk_path(c, [(cx, cy + 70), (cx + 58, cy + 128)], rng, width=4)  # 9 рука
+    if on(10):
+        _sk_path(c, [(cx, cy + 170), (cx - 50, cy + 250)], rng, width=4)  # 10 ноги
+        _sk_path(c, [(cx, cy + 170), (cx + 50, cy + 250)], rng, width=4)
+        # грустное лицо на проигрыше
         _sk_circle(c, cx - 12, cy - 6, 3, rng, width=2, jitter=1)
         _sk_circle(c, cx + 12, cy - 6, 3, rng, width=2, jitter=1)
         _sk_path(c, [(cx - 13, cy + 18), (cx, cy + 10), (cx + 13, cy + 18)], rng,
