@@ -200,6 +200,69 @@ def render_welcome(games: list[tuple[str, str]]) -> BytesIO:
     return c.finalize("welcome.png")
 
 
+_GAME_SHORT = {
+    "crocodile": "Крокодил", "bunker": "Бункер", "mafia": "Мафия",
+    "hangman": "Виселица", "truthdare": "Правда/Д", "quiz": "Викторина",
+    "guessnum": "Число", "rps": "КНБ",
+}
+
+
+def render_admin_panel(data: dict) -> BytesIO:
+    """Картинка админ-панели: плитки статистики + список чатов."""
+    chats = data.get("chats", [])[:8]
+    rows = len(chats)
+    height = 420 + rows * 64 + 40
+    c = Canvas(1000, max(520, height))
+    c.gradient(BG_TOP, BG_BOT)
+    c.circle(900, 120, 180, (142, 112, 255, 32))
+
+    _header(c, "A", "Админ-панель", "LazyGame · статистика", VIOLET)
+
+    tiles = [
+        ("Чатов (админ)", str(data.get("chats_admin", 0)), GREEN),
+        ("Участников", str(data.get("members_total", 0)), GOLD),
+        ("Игр запущено", str(data.get("games_total", 0)), CYAN),
+        ("Активно сейчас", str(data.get("active_now", 0)), PINK),
+    ]
+    margin, gap = 48, 20
+    tw = (1000 - margin * 2 - gap * 3) / 4
+    ty = 170
+    for i, (label, value, accent) in enumerate(tiles):
+        x = margin + i * (tw + gap)
+        c.rrect([x, ty, x + tw, ty + 120], radius=18, fill=PANEL)
+        c.rrect([x, ty, x + tw, ty + 6], radius=3, fill=accent)
+        c.text_center(x + tw / 2, ty + 26, value, 48, accent, bold=True)
+        c.text_center(x + tw / 2, ty + 92, label, 20, MUTED)
+
+    # разбивка по играм
+    by_game = data.get("by_game", {})
+    if by_game:
+        parts = [f"{_GAME_SHORT.get(s, s)}: {n}"
+                 for s, n in sorted(by_game.items(), key=lambda kv: kv[1], reverse=True)]
+        c.text((margin, 318), "По играм:  " + "   ".join(parts), 22, MUTED)
+
+    # список чатов
+    c.text((margin, 366), "Чаты, где бот админ:", 26, TEXT, bold=True)
+    y = 404
+    if not chats:
+        c.text((margin, y), "пока нет данных", 24, MUTED)
+    for ch in chats:
+        c.rrect([margin, y, 1000 - margin, y + 54], radius=14, fill=PANEL)
+        dot = GREEN if ch.get("admin") else RED
+        c.circle(margin + 28, y + 27, 9, dot)
+        title = ch.get("title", "—")
+        if c.textlen(title, 24, bold=True) > 580:
+            while title and c.textlen(title + "…", 24, bold=True) > 580:
+                title = title[:-1]
+            title += "…"
+        c.text((margin + 52, y + 14), title, 24, TEXT, bold=True)
+        c.text((1000 - margin - 280, y + 14),
+               f"{ch.get('members', 0)} чел.    {ch.get('games', 0)} игр", 24, GOLD)
+        y += 64
+
+    return c.finalize("admin.png")
+
+
 def render_avatar() -> BytesIO:
     """Квадратная аватарка бота (Telegram обрежет в круг — важное в центре)."""
     c = Canvas(640, 640)

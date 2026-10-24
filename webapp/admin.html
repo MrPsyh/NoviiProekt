@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LazyGame — админ</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg-top:#21173f; --bg-bot:#0c0a18; --panel:#2e2846; --panel2:#3a3256;
+    --text:#edebf7; --muted:#a8a2c4;
+    --violet:#8e70ff; --gold:#ffce61; --pink:#ff6392; --green:#56d6a0; --cyan:#4ecee8; --red:#f06e6e;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--text); background:linear-gradient(160deg,var(--bg-top),var(--bg-bot) 70%);
+    min-height:100vh; padding:16px 16px 40px;}
+  .head{display:flex; align-items:center; gap:14px; margin:6px 2px 18px;}
+  .mono{width:54px;height:54px;border-radius:15px;background:var(--violet);display:flex;
+    align-items:center;justify-content:center;color:#17122a;font-weight:800;font-size:22px;}
+  .head h1{margin:0;font-size:22px;} .head p{margin:2px 0 0;color:var(--muted);font-size:12px;}
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+  .tile{background:var(--panel);border-radius:16px;padding:16px;position:relative;overflow:hidden;}
+  .tile .bar{position:absolute;left:0;top:0;right:0;height:5px;background:var(--c);}
+  .tile .v{font-size:32px;font-weight:800;color:var(--c);}
+  .tile .l{font-size:13px;color:var(--muted);margin-top:4px;}
+  h2{font-size:16px;margin:18px 2px 10px;}
+  .chat{background:var(--panel);border-radius:14px;padding:12px 14px;margin-bottom:9px;
+    display:flex;align-items:center;gap:10px;}
+  .dot{width:11px;height:11px;border-radius:50%;flex:0 0 auto;}
+  .chat .t{flex:1;font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chat .m{color:var(--gold);font-size:14px;font-weight:700;white-space:nowrap;}
+  .muted{color:var(--muted);font-size:13px;}
+  .bygame{background:var(--panel);border-radius:14px;padding:12px 14px;margin-bottom:8px;
+    font-size:14px;color:var(--text);line-height:1.6;}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="mono">A</div>
+    <div><h1>Админ-панель</h1><p id="gen">LazyGame · статистика</p></div>
+  </div>
+  <div class="tiles" id="tiles"></div>
+  <div id="bygame"></div>
+  <h2>Чаты, где бот админ</h2>
+  <div id="chats"></div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if(tg){ tg.ready(); tg.expand(); }
+
+function b64urlDecode(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/');
+  while(s.length % 4) s += '=';
+  const bin = atob(s);
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+const NAMES = {crocodile:"Крокодил",bunker:"Бункер",mafia:"Мафия",hangman:"Виселица",
+  truthdare:"Правда/Д",quiz:"Викторина",guessnum:"Число",rps:"КНБ"};
+
+let data = {};
+try{
+  const p = new URLSearchParams(location.search).get("d");
+  if(p) data = JSON.parse(b64urlDecode(p));
+}catch(e){ data = {}; }
+
+const tiles = [
+  ["Чатов (админ)", data.chats_admin||0, "var(--green)"],
+  ["Участников", data.members_total||0, "var(--gold)"],
+  ["Игр запущено", data.games_total||0, "var(--cyan)"],
+  ["Активно сейчас", data.active_now||0, "var(--pink)"],
+];
+document.getElementById("tiles").innerHTML = tiles.map(([l,v,c])=>
+  `<div class="tile" style="--c:${c}"><div class="bar"></div>
+   <div class="v">${v}</div><div class="l">${l}</div></div>`).join("");
+
+const bg = data.by_game || {};
+const bgKeys = Object.keys(bg).sort((a,b)=>bg[b]-bg[a]);
+if(bgKeys.length){
+  document.getElementById("bygame").innerHTML =
+    `<div class="bygame"><b>По играм:</b> ${bgKeys.map(k=>`${NAMES[k]||k}: ${bg[k]}`).join(" · ")}</div>`;
+}
+
+const chats = data.chats || [];
+const box = document.getElementById("chats");
+if(!chats.length){
+  box.innerHTML = `<div class="muted">Пока нет данных. Добавь бота в группы и сделай админом.</div>`;
+}else{
+  box.innerHTML = chats.map(ch=>`
+    <div class="chat">
+      <span class="dot" style="background:${ch.admin?'var(--green)':'var(--red)'}"></span>
+      <span class="t">${(ch.title||"—").replace(/</g,"&lt;")}</span>
+      <span class="m">${ch.members||0} чел · ${ch.games||0} игр</span>
+    </div>`).join("");
+}
+
+const gen = data.started_at ? ("данные с " + data.started_at.replace("T"," ").slice(0,16)) : "статистика";
+document.getElementById("gen").textContent = "LazyGame · " + gen;
+</script>
+</body>
+</html>

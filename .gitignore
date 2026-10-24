@@ -14,6 +14,10 @@ env/
 # Generated card images
 lazygame/assets/generated/
 
+# Runtime stats
+lazygame/data/stats.json
+lazygame/data/stats.json.tmp
+
 # OS / editor
 .DS_Store
 .idea/

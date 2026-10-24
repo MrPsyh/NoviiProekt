@@ -34,8 +34,8 @@ from telegram.ext import (
     filters,
 )
 
-from .cards import render_welcome
-from .config import BOT_TOKEN, WEBAPP_URL
+from .cards import render_admin_panel, render_welcome
+from .config import ADMIN_ID, BOT_TOKEN, WEBAPP_URL
 from .games import (
     BunkerGame,
     CrocodileGame,
@@ -53,6 +53,7 @@ from .games import (
 )
 from .i18n import LANGUAGES, t
 from .settings import settings
+from .stats import stats
 
 # игры, у которых контент пока только на русском
 RU_CONTENT_GAMES = {"bunker", "mafia", "truthdare"}
@@ -193,6 +194,11 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
     just_added = old in ("left", "kicked") and new in ("member", "administrator")
     promoted = old == "member" and new in ADMIN_STATUSES
 
+    if new in ("left", "kicked"):
+        stats.remove_chat(chat_id)
+    else:
+        stats.touch_chat(upd.chat)
+
     if just_added and new == "administrator":
         await context.bot.send_message(
             chat_id,
@@ -296,6 +302,7 @@ async def _start_solo(context, chat_id, user, slug, difficulty=None) -> None:
     else:
         game = cls(chat_id, _player_from_user(user), lang)
     rooms.set(chat_id, game)
+    stats.game_started(slug, chat_id, [user.id])
     await game.start(context.bot)
 
 
@@ -369,6 +376,7 @@ async def cmd_newgame(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         await update.message.reply_text("Игры запускаются в групповом чате. Добавь меня в группу!")
         return
     chat_id = update.effective_chat.id
+    stats.touch_chat(update.effective_chat)
     lang = settings.get_lang(chat_id)
     if not await _bot_is_admin(context, chat_id):
         await update.message.reply_text(t(lang, "need_admin"), parse_mode="HTML")
@@ -564,6 +572,7 @@ async def on_lobby_leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def _launch_game(context: ContextTypes.DEFAULT_TYPE, game) -> None:
     _cancel_lobby_timer(game)
+    stats.game_started(game.slug, game.chat_id, list(game.players.keys()))
     await game.start(context.bot)
     if isinstance(game, MafiaGame):
         await _send_mafia_night_prompts(context.bot, game)
@@ -975,6 +984,81 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # ======================================================================
 # Запуск
 # ======================================================================
+# ======================================================================
+# Админ-панель (доступна только ADMIN_ID)
+# ======================================================================
+async def _build_admin_data(context) -> dict:
+    chats_info, members_total, chats_admin = [], 0, 0
+    bot_id = context.bot.id
+    for cid in stats.group_chat_ids():
+        meta = stats.chats.get(str(cid), {})
+        title = meta.get("title", str(cid))
+        games = meta.get("games", 0)
+        is_admin, members = False, 0
+        try:
+            cm = await context.bot.get_chat_member(cid, bot_id)
+            is_admin = cm.status in ADMIN_STATUSES
+            members = await context.bot.get_chat_member_count(cid)
+            try:
+                chat = await context.bot.get_chat(cid)
+                title = chat.title or title
+            except Exception:  # noqa: BLE001
+                pass
+        except Exception:  # noqa: BLE001
+            is_admin = False  # бота убрали из чата
+        if is_admin:
+            chats_admin += 1
+            members_total += members
+        chats_info.append({"title": title, "members": members,
+                           "admin": is_admin, "games": games})
+    chats_info.sort(key=lambda c: (c["admin"], c["members"]), reverse=True)
+    active_now = sum(1 for cid in list(rooms._rooms) if rooms.has_active(cid))  # noqa: SLF001
+    data = stats.base_snapshot()
+    data.update({
+        "chats_admin": chats_admin,
+        "members_total": members_total,
+        "active_now": active_now,
+        "chats": chats_info,
+    })
+    return data
+
+
+def _admin_summary(data: dict) -> str:
+    return (
+        "✅ <b>Доступ разрешён.</b>\n\n"
+        "📊 <b>Админ-панель LazyGame</b>\n"
+        f"• Чатов (бот админ): <b>{data['chats_admin']}</b>\n"
+        f"• Участников суммарно: <b>{data['members_total']}</b>\n"
+        f"• Игр запущено: <b>{data['games_total']}</b>\n"
+        f"• Активных игр сейчас: <b>{data['active_now']}</b>\n"
+        f"• Уникальных игроков: <b>{data['users_total']}</b>"
+    )
+
+
+async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user = update.effective_user
+    if user is None or user.id != ADMIN_ID:
+        return  # не админ — молча игнорируем
+    data = await _build_admin_data(context)
+    buttons = None
+    if WEBAPP_URL and update.effective_chat.type == ChatType.PRIVATE:
+        import base64
+        import json as _json
+        payload = base64.urlsafe_b64encode(
+            _json.dumps(data, ensure_ascii=False).encode()).decode()
+        url = WEBAPP_URL.rstrip("/") + "/admin.html?d=" + payload
+        buttons = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("📊 Открыть админ-панель",
+                                   web_app=WebAppInfo(url=url))]])
+    try:
+        await update.message.reply_photo(
+            render_admin_panel(data), caption=_admin_summary(data),
+            parse_mode="HTML", reply_markup=buttons)
+    except Exception:  # noqa: BLE001
+        await update.message.reply_text(_admin_summary(data), parse_mode="HTML",
+                                        reply_markup=buttons)
+
+
 async def _post_init(app: Application) -> None:
     """Прописывает меню команд (всплывает при вводе «/») и кнопку мини-аппа."""
     await app.bot.set_my_commands([
@@ -1013,6 +1097,7 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("newgame", cmd_newgame))
     app.add_handler(CommandHandler("play", cmd_play))
+    app.add_handler(CommandHandler("admin", cmd_admin))
     app.add_handler(CommandHandler("settings", cmd_settings))
     app.add_handler(CommandHandler("go", cmd_go))
     app.add_handler(CommandHandler("stop", cmd_stop))
@@ -1049,6 +1134,8 @@ def build_application() -> Application:
 
     app.add_handler(ChatMemberHandler(on_my_chat_member, ChatMemberHandler.MY_CHAT_MEMBER))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_webapp_data))
+    # слово «админ»/«admin» — вход в админ-панель (реагирует только на ADMIN_ID)
+    app.add_handler(MessageHandler(filters.Regex(r"(?i)^\s*(админ|admin)\s*$"), cmd_admin))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
     return app
 
