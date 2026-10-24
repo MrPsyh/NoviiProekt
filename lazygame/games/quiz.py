@@ -21,8 +21,8 @@ class QuizGame(BaseGame):
     min_players = 1
     max_players = 1
 
-    def __init__(self, chat_id: int, host: Player):
-        super().__init__(chat_id, host)
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
+        super().__init__(chat_id, host, lang)
         self.questions: list = []
         self.index = 0
         self.score = 0

@@ -31,10 +31,11 @@ class MafiaGame(BaseGame):
     title = "🔪 Мафия"
     slug = "mafia"
     min_players = 4
+    restrict_outsiders = True
     max_players = 35
 
-    def __init__(self, chat_id: int, host: Player):
-        super().__init__(chat_id, host)
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
+        super().__init__(chat_id, host, lang)
         self.alive: set[int] = set()
         self.is_night: bool = False
         # ночные действия

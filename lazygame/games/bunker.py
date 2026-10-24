@@ -35,10 +35,11 @@ class BunkerGame(BaseGame):
     title = "🏚 Бункер"
     slug = "bunker"
     min_players = 3
+    restrict_outsiders = True
     max_players = 16
 
-    def __init__(self, chat_id: int, host: Player):
-        super().__init__(chat_id, host)
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
+        super().__init__(chat_id, host, lang)
         self.scenario: str = ""
         self.bunker_lines: list[str] = []
         self.capacity: int = 0

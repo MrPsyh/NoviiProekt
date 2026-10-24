@@ -19,8 +19,8 @@ class TruthOrDareGame(BaseGame):
     min_players = 2
     max_players = 30
 
-    def __init__(self, chat_id: int, host: Player):
-        super().__init__(chat_id, host)
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
+        super().__init__(chat_id, host, lang)
         self.current_id: int | None = None
 
     def _pick_player(self, exclude: int | None = None) -> Player:

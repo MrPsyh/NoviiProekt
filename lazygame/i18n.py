@@ -90,6 +90,34 @@ T: dict[str, dict[str, str]] = {
         "en": "ℹ️ This game's content is in Russian for now.\n",
         "uk": "ℹ️ Контент цієї гри поки що російською.\n",
     },
+    "not_your_menu": {
+        "ru": "Это не твоё меню 🙅",
+        "en": "This isn't your menu 🙅",
+        "uk": "Це не твоє меню 🙅",
+    },
+    "cooldown": {
+        "ru": "Подожди {n} сек перед новым меню.",
+        "en": "Wait {n} s before a new menu.",
+        "uk": "Зачекай {n} с перед новим меню.",
+    },
+    "lobby_cancelled": {
+        "ru": "⌛ Не набралось игроков (нужно {n}). Игра отменена. /newgame — заново.",
+        "en": "⌛ Not enough players (need {n}). Game cancelled. /newgame to retry.",
+        "uk": "⌛ Не набралось гравців (потрібно {n}). Гру скасовано. /newgame — заново.",
+    },
+    "outsider_muted": {
+        "ru": "🤫 {name}, ты не в игре — слово лишено на 60 секунд.",
+        "en": "🤫 {name}, you're not in the game — muted for 60 seconds.",
+        "uk": "🤫 {name}, ти не в грі — позбавлено слова на 60 секунд.",
+    },
+    "croc_replace_btn": {
+        "ru": "🔄 Заменить слово", "en": "🔄 Replace word", "uk": "🔄 Замінити слово",
+    },
+    "stopped_by_admin": {
+        "ru": "🛑 Игру остановил админ. /newgame — заново.",
+        "en": "🛑 Game stopped by an admin. /newgame to restart.",
+        "uk": "🛑 Гру зупинив адмін. /newgame — заново.",
+    },
 
     # --- Крокодил ---
     "croc_leader": {

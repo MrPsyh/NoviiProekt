@@ -36,6 +36,8 @@ class BaseGame:
     slug: str = "base"
     min_players: int = 2
     max_players: int = 20
+    #: если True — во время игры посторонним (не игрокам) нельзя писать в чат
+    restrict_outsiders: bool = False
 
     def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
         self.chat_id = chat_id
@@ -65,6 +67,9 @@ class BaseGame:
             self.phase == Phase.LOBBY
             and len(self.players) >= self.min_players
         )
+
+    def is_participant(self, user_id: int) -> bool:
+        return user_id in self.players
 
     def lobby_text(self) -> str:
         from ..i18n import LANGUAGES, t

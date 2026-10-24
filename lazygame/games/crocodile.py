@@ -9,7 +9,7 @@ from __future__ import annotations
 import random
 import re
 
-from telegram import Bot
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import TelegramError
 
 from ..cards import render_word_card
@@ -24,20 +24,26 @@ class CrocodileGame(BaseGame):
     min_players = 2
     max_players = 35
 
-    def __init__(self, chat_id: int, host: Player, lang: str = "ru"):
+    def __init__(self, chat_id: int, host: Player, lang: str = "ru",
+                 difficulty: str = "medium"):
         super().__init__(chat_id, host, lang)
         self.word: str = ""
-        self.difficulty: str = "medium"
+        self.difficulty: str = difficulty
         self.leader_id: int = host.user_id
         self.scores: dict[int, int] = {}
+        self.used: set[str] = set()   # чтобы слова не повторялись
 
     def _words(self) -> dict:
         return WORDS.get(self.lang, WORDS["ru"])
 
     def _pick_word(self) -> None:
-        pool = self._words()
-        self.difficulty = random.choice(list(pool.keys()))
-        self.word = random.choice(pool[self.difficulty])
+        pool = self._words().get(self.difficulty) or self._words()["medium"]
+        available = [w for w in pool if w not in self.used]
+        if not available:              # все слова прошли — начинаем круг заново
+            self.used.clear()
+            available = list(pool)
+        self.word = random.choice(available)
+        self.used.add(self.word)
 
     async def _send_word_to_leader(self, bot: Bot) -> bool:
         image = render_word_card(self.word, self.difficulty)
@@ -62,7 +68,10 @@ class CrocodileGame(BaseGame):
         text = t(self.lang, "croc_leader", m=leader.mention)
         if not delivered:
             text += "\n\n" + t(self.lang, "croc_no_pm", m=leader.mention)
-        await bot.send_message(self.chat_id, text, parse_mode="HTML")
+        kb = InlineKeyboardMarkup([[
+            InlineKeyboardButton(t(self.lang, "croc_replace_btn"), callback_data="cnew")
+        ]])
+        await bot.send_message(self.chat_id, text, parse_mode="HTML", reply_markup=kb)
 
     def check_guess(self, text: str) -> bool:
         target = self.word.strip().lower()

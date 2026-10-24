@@ -5,11 +5,15 @@
 """
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
 
 from telegram import (
     BotCommand,
+    ChatPermissions,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -98,6 +102,65 @@ def _webapp_reply_keyboard() -> ReplyKeyboardMarkup | None:
 def _player_from_user(user) -> Player:
     name = user.full_name or user.username or str(user.id)
     return Player(user_id=user.id, name=name)
+
+
+DIFFICULTY_GAMES = {"crocodile", "hangman"}
+LOBBY_TIMEOUT = 90          # сек на набор игроков
+MENU_CD = 30                # сек между открытиями меню одним человеком
+MUTE_SECONDS = 60           # мут постороннего, писавшего во время закрытой игры
+
+_menu_owner: dict[int, int] = {}   # message_id -> user_id (чья это панель)
+_menu_cd: dict[int, float] = {}    # user_id -> время последнего открытия меню
+
+
+def _own(message, user_id: int) -> None:
+    _menu_owner[message.message_id] = user_id
+
+
+def _is_owner(query) -> bool:
+    owner = _menu_owner.get(query.message.message_id)
+    return owner is None or owner == query.from_user.id
+
+
+async def _deny_foreign(query) -> bool:
+    """True и показывает алерт, если это не панель нажавшего."""
+    if _is_owner(query):
+        return False
+    lang = settings.get_lang(query.message.chat.id)
+    await query.answer(t(lang, "not_your_menu"), show_alert=True)
+    return True
+
+
+def _cooldown_left(user_id: int) -> int:
+    left = MENU_CD - (time.monotonic() - _menu_cd.get(user_id, 0.0))
+    return max(0, int(left + 0.999))
+
+
+async def _user_is_admin(context, chat_id: int, user_id: int) -> bool:
+    try:
+        member = await context.bot.get_chat_member(chat_id, user_id)
+        return member.status in ADMIN_STATUSES
+    except Exception:  # noqa: BLE001
+        return False
+
+
+async def _lobby_timeout(context, game) -> None:
+    """Отменяет игру, если за LOBBY_TIMEOUT не набралось минимум игроков."""
+    try:
+        await asyncio.sleep(LOBBY_TIMEOUT)
+    except asyncio.CancelledError:
+        return
+    if rooms.get(game.chat_id) is game and game.phase == Phase.LOBBY \
+            and not game.can_start():
+        rooms.clear(game.chat_id)
+        await context.bot.send_message(
+            game.chat_id, t(game.lang, "lobby_cancelled", n=game.min_players))
+
+
+def _cancel_lobby_timer(game) -> None:
+    task = getattr(game, "_lobby_task", None)
+    if task and not task.done():
+        task.cancel()
 
 
 async def _bot_is_admin(context: ContextTypes.DEFAULT_TYPE, chat_id: int) -> bool:
@@ -195,11 +258,11 @@ def _two_col(items: list[tuple[str, str]], prefix: str,
     return InlineKeyboardMarkup(rows)
 
 
-def _diff_markup(lang: str, prefix: str) -> InlineKeyboardMarkup:
+def _diff_markup(lang: str, prefix: str, slug: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton(t(lang, "diff_easy"), callback_data=f"{prefix}:easy")],
-        [InlineKeyboardButton(t(lang, "diff_medium"), callback_data=f"{prefix}:medium")],
-        [InlineKeyboardButton(t(lang, "diff_hard"), callback_data=f"{prefix}:hard")],
+        [InlineKeyboardButton(t(lang, "diff_easy"), callback_data=f"{prefix}:{slug}:easy")],
+        [InlineKeyboardButton(t(lang, "diff_medium"), callback_data=f"{prefix}:{slug}:medium")],
+        [InlineKeyboardButton(t(lang, "diff_hard"), callback_data=f"{prefix}:{slug}:hard")],
     ])
 
 
@@ -212,17 +275,23 @@ async def cmd_play(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if rooms.has_active(chat_id):
         await update.message.reply_text("У тебя уже идёт игра. Заверши её: /stop")
         return
+    left = _cooldown_left(update.effective_user.id)
+    if left > 0:
+        await update.message.reply_text(t(settings.get_lang(chat_id), "cooldown", n=left))
+        return
+    _menu_cd[update.effective_user.id] = time.monotonic()
     items = [(slug, cls.title) for slug, cls in SOLO_REGISTRY.items()]
-    await update.message.reply_text(
+    msg = await update.message.reply_text(
         "🎮 <b>Соло-игры</b>\nВыбери, во что сыграем:",
         parse_mode="HTML", reply_markup=_two_col(items, "solo"),
     )
+    _own(msg, update.effective_user.id)
 
 
 async def _start_solo(context, chat_id, user, slug, difficulty=None) -> None:
     lang = settings.get_lang(chat_id)
     cls = SOLO_REGISTRY[slug]
-    if slug == HangmanGame.slug:
+    if slug in DIFFICULTY_GAMES:
         game = cls(chat_id, _player_from_user(user), lang, difficulty or "medium")
     else:
         game = cls(chat_id, _player_from_user(user), lang)
@@ -232,6 +301,8 @@ async def _start_solo(context, chat_id, user, slug, difficulty=None) -> None:
 
 async def on_choose_solo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
     slug = query.data.split(":", 1)[1]
     chat_id = query.message.chat.id
@@ -240,9 +311,9 @@ async def on_choose_solo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await query.edit_message_text("Не получилось начать. Напиши /play заново.")
         return
     lang = settings.get_lang(chat_id)
-    if slug == HangmanGame.slug:  # у виселицы спрашиваем сложность
+    if slug in DIFFICULTY_GAMES:  # спрашиваем сложность
         await query.edit_message_text(t(lang, "choose_diff"),
-                                      reply_markup=_diff_markup(lang, "sd"))
+                                      reply_markup=_diff_markup(lang, "sd", slug))
         return
     await query.edit_message_text(f"▶️ {cls.title}")
     await _start_solo(context, chat_id, query.from_user, slug)
@@ -250,14 +321,16 @@ async def on_choose_solo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 async def on_solo_diff(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
-    difficulty = query.data.split(":", 1)[1]
+    _, slug, difficulty = query.data.split(":")
     chat_id = query.message.chat.id
     if rooms.has_active(chat_id):
         await query.edit_message_text("Не получилось начать. Напиши /play заново.")
         return
-    await query.edit_message_text(f"▶️ {HangmanGame.title}")
-    await _start_solo(context, chat_id, query.from_user, HangmanGame.slug, difficulty)
+    await query.edit_message_text(f"▶️ {SOLO_REGISTRY[slug].title}")
+    await _start_solo(context, chat_id, query.from_user, slug, difficulty)
 
 
 async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -303,12 +376,20 @@ async def cmd_newgame(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if rooms.has_active(chat_id):
         await update.message.reply_text(t(lang, "already_active"))
         return
+    left = _cooldown_left(update.effective_user.id)
+    if left > 0:
+        await update.message.reply_text(t(lang, "cooldown", n=left))
+        return
+    _menu_cd[update.effective_user.id] = time.monotonic()
     # шаг 1 — выбор языка
-    await update.message.reply_text(t(lang, "choose_lang"), reply_markup=_lang_markup())
+    msg = await update.message.reply_text(t(lang, "choose_lang"), reply_markup=_lang_markup())
+    _own(msg, update.effective_user.id)
 
 
 async def on_choose_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
     lang = query.data.split(":", 1)[1]
     chat_id = query.message.chat.id
@@ -317,10 +398,10 @@ async def on_choose_lang(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     await query.edit_message_text(t(lang, "choose_game"), reply_markup=_game_menu_markup(lang))
 
 
-async def _create_group_lobby(query, chat_id, slug, lang, difficulty=None) -> None:
+async def _create_group_lobby(context, query, chat_id, slug, lang, difficulty=None) -> None:
     cls = GAME_REGISTRY[slug]
     host = _player_from_user(query.from_user)
-    if slug == HangmanGame.slug:
+    if slug in DIFFICULTY_GAMES:
         game = cls(chat_id, host, lang, difficulty or "medium")
     else:
         game = cls(chat_id, host, lang)
@@ -331,10 +412,14 @@ async def _create_group_lobby(query, chat_id, slug, lang, difficulty=None) -> No
         note + game.lobby_text() + "\n\n" + t(lang, "lobby_hint"),
         parse_mode="HTML", reply_markup=_lobby_markup(lang),
     )
+    # таймер автоотмены, если не наберётся минимум игроков
+    game._lobby_task = asyncio.create_task(_lobby_timeout(context, game))
 
 
 async def on_choose_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
     slug = query.data.split(":", 1)[1]
     chat_id = query.message.chat.id
@@ -342,23 +427,25 @@ async def on_choose_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if rooms.has_active(chat_id):
         await query.edit_message_text(t(lang, "already_active"))
         return
-    if slug == HangmanGame.slug:  # сложность для виселицы
+    if slug in DIFFICULTY_GAMES:  # сложность для Крокодила и Виселицы
         await query.edit_message_text(t(lang, "choose_diff"),
-                                      reply_markup=_diff_markup(lang, "nd"))
+                                      reply_markup=_diff_markup(lang, "nd", slug))
         return
-    await _create_group_lobby(query, chat_id, slug, lang)
+    await _create_group_lobby(context, query, chat_id, slug, lang)
 
 
 async def on_newgame_diff(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
-    difficulty = query.data.split(":", 1)[1]
+    _, slug, difficulty = query.data.split(":")
     chat_id = query.message.chat.id
     lang = settings.get_lang(chat_id)
     if rooms.has_active(chat_id):
         await query.edit_message_text(t(lang, "already_active"))
         return
-    await _create_group_lobby(query, chat_id, HangmanGame.slug, lang, difficulty)
+    await _create_group_lobby(context, query, chat_id, slug, lang, difficulty)
 
 
 # ======================================================================
@@ -386,11 +473,14 @@ async def cmd_settings(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text("Настройки доступны в групповом чате.")
         return
     text, markup = _settings_view(update.effective_chat.id)
-    await update.message.reply_text(text, parse_mode="HTML", reply_markup=markup)
+    msg = await update.message.reply_text(text, parse_mode="HTML", reply_markup=markup)
+    _own(msg, update.effective_user.id)
 
 
 async def on_settings_open(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     await query.answer()
     text, markup = _settings_view(query.message.chat.id)
     await query.edit_message_text(text, parse_mode="HTML", reply_markup=markup)
@@ -398,6 +488,8 @@ async def on_settings_open(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
 async def on_settings_change(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     query = update.callback_query
+    if await _deny_foreign(query):
+        return
     chat_id = query.message.chat.id
     arg = query.data.split(":", 1)[1]
 
@@ -471,6 +563,7 @@ async def on_lobby_leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def _launch_game(context: ContextTypes.DEFAULT_TYPE, game) -> None:
+    _cancel_lobby_timer(game)
     await game.start(context.bot)
     if isinstance(game, MafiaGame):
         await _send_mafia_night_prompts(context.bot, game)
@@ -512,11 +605,37 @@ async def cmd_go(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 # ======================================================================
 # Текстовый ввод: Крокодил и Виселица
 # ======================================================================
+async def _mute_outsider(context, update, game) -> None:
+    """Удаляет сообщение постороннего и выдаёт мут на MUTE_SECONDS."""
+    chat_id = update.effective_chat.id
+    user = update.effective_user
+    try:
+        await update.message.delete()
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        until = datetime.now(timezone.utc) + timedelta(seconds=MUTE_SECONDS)
+        await context.bot.restrict_chat_member(
+            chat_id, user.id,
+            permissions=ChatPermissions(can_send_messages=False),
+            until_date=until,
+        )
+        await context.bot.send_message(
+            chat_id, t(game.lang, "outsider_muted", name=user.full_name))
+    except Exception:  # noqa: BLE001
+        pass  # нет прав мутить / это админ — тихо игнорируем
+
+
 async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     game = rooms.get(update.effective_chat.id)
     if game is None or game.phase != Phase.RUNNING:
         return
     is_private = update.effective_chat.type == ChatType.PRIVATE
+    user_id = update.effective_user.id
+    # в закрытых играх (Мафия/Бункер) посторонним писать нельзя
+    if not is_private and game.restrict_outsiders and not game.is_participant(user_id):
+        await _mute_outsider(context, update, game)
+        return
     player = _player_from_user(update.effective_user)
     if isinstance(game, HangmanGame):
         # Виселица работает и в группе, и соло в ЛС
@@ -531,6 +650,19 @@ async def cmd_skip(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     game = rooms.get(update.effective_chat.id)
     if isinstance(game, CrocodileGame):
         await game.skip_word(context.bot, update.effective_user.id)
+
+
+async def on_croc_replace(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    game = rooms.get(query.message.chat.id)
+    if not isinstance(game, CrocodileGame):
+        await query.answer()
+        return
+    if query.from_user.id != game.leader_id:
+        await query.answer(t(game.lang, "only_host"), show_alert=True)
+        return
+    await query.answer("🔄")
+    await game.skip_word(context.bot, query.from_user.id)
 
 
 async def cmd_score(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -825,11 +957,19 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not game:
         await update.message.reply_text(t(settings.get_lang(chat_id), "no_active"))
         return
-    if update.effective_user.id != game.host.user_id:
+    user_id = update.effective_user.id
+    is_host = user_id == game.host.user_id
+    # остановить может ведущий ИЛИ любой админ группы
+    is_admin = False
+    if not is_host and update.effective_chat.type != ChatType.PRIVATE:
+        is_admin = await _user_is_admin(context, chat_id, user_id)
+    if not is_host and not is_admin:
         await update.message.reply_text(t(game.lang, "only_host"))
         return
+    _cancel_lobby_timer(game)
     rooms.clear(chat_id)
-    await update.message.reply_text(t(game.lang, "stopped"))
+    await update.message.reply_text(
+        t(game.lang, "stopped_by_admin" if (is_admin and not is_host) else "stopped"))
 
 
 # ======================================================================
@@ -860,8 +1000,14 @@ async def _post_init(app: Application) -> None:
             logger.warning("Не удалось поставить кнопку мини-аппа: %s", exc)
 
 
+async def on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Глобальный обработчик — логируем и не падаем на единичных ошибках."""
+    logger.warning("Ошибка при обработке апдейта: %s", context.error)
+
+
 def build_application() -> Application:
     app = ApplicationBuilder().token(BOT_TOKEN).post_init(_post_init).build()
+    app.add_error_handler(on_error)
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("help", cmd_help))
@@ -882,6 +1028,7 @@ def build_application() -> Application:
     app.add_handler(CallbackQueryHandler(on_solo_diff, pattern=r"^sd:"))
     app.add_handler(CallbackQueryHandler(on_quiz_answer, pattern=r"^qz:"))
     app.add_handler(CallbackQueryHandler(on_rps, pattern=r"^rps:"))
+    app.add_handler(CallbackQueryHandler(on_croc_replace, pattern=r"^cnew$"))
     app.add_handler(CallbackQueryHandler(on_settings_open, pattern=r"^settings$"))
     app.add_handler(CallbackQueryHandler(on_settings_change, pattern=r"^st:"))
     app.add_handler(CallbackQueryHandler(on_lobby_join, pattern=r"^lj$"))
