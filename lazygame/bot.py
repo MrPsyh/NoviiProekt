@@ -154,6 +154,7 @@ async def _lobby_timeout(context, game) -> None:
         return
     if rooms.get(game.chat_id) is game and game.phase == Phase.LOBBY \
             and not game.can_start():
+        await _unpin_lobby(context, game)
         rooms.clear(game.chat_id)
         await context.bot.send_message(
             game.chat_id, t(game.lang, "lobby_cancelled", n=game.min_players))
@@ -227,7 +228,32 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 # ======================================================================
 # Базовые команды
 # ======================================================================
+async def _deeplink_join(update: Update, context: ContextTypes.DEFAULT_TYPE, arg: str) -> None:
+    """Вход в набор по ссылке t.me/bot?start=join_<chat_id> (открывает ЛС)."""
+    try:
+        chat_id = int(arg.split("_", 1)[1])
+    except (ValueError, IndexError):
+        await update.message.reply_text("Ссылка набора недействительна.")
+        return
+    game = rooms.get(chat_id)
+    if not game or game.phase != Phase.LOBBY:
+        await update.message.reply_text("Набор в этом чате уже закрыт или не найден.")
+        return
+    if game.add_player(_player_from_user(update.effective_user)):
+        await update.message.reply_text(
+            f"✅ Ты записан в «{game.title}»! Возвращайся в чат и жди старта.\n"
+            f"Роль/карточку пришлю сюда, в личку.")
+        await _render_lobby(context, game)
+    else:
+        await update.message.reply_text("Ты уже в списке или мест нет.")
+
+
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    args = context.args or []
+    if (update.effective_chat.type == ChatType.PRIVATE
+            and args and args[0].startswith("join_")):
+        await _deeplink_join(update, context, args[0])
+        return
     if update.effective_chat.type == ChatType.PRIVATE:
         caption = (
             "Привет! Я <b>LazyGame</b> 🎲\n\n"
@@ -429,10 +455,18 @@ async def _create_group_lobby(context, query, chat_id, slug, lang,
     game.max_players = _max_for(chat_id, cls)
     rooms.set(chat_id, game)
     note = t(lang, "content_ru_only") if (lang != "ru" and slug in RU_CONTENT_GAMES) else ""
+    game._lobby_msg_id = query.message.message_id
     await query.edit_message_text(
         note + game.lobby_text() + "\n\n" + t(lang, "lobby_hint"),
-        parse_mode="HTML", reply_markup=_lobby_markup(lang),
+        parse_mode="HTML", reply_markup=_lobby_kb(context, game),
     )
+    # закрепляем набор, как у популярных ботов
+    try:
+        await context.bot.pin_chat_message(chat_id, game._lobby_msg_id,
+                                           disable_notification=True)
+        game._pinned = True
+    except Exception:
+        game._pinned = False
     # таймер автоотмены, если не наберётся минимум игроков
     game._lobby_task = asyncio.create_task(_lobby_timeout(context, game))
 
@@ -554,25 +588,48 @@ async def on_settings_change(update: Update, context: ContextTypes.DEFAULT_TYPE)
 # ======================================================================
 # Лобби
 # ======================================================================
-def _lobby_markup(lang: str = "ru") -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton(t(lang, "btn_join"), callback_data="lj"),
-            InlineKeyboardButton(t(lang, "btn_leave"), callback_data="ll"),
-        ],
-        [InlineKeyboardButton(t(lang, "btn_start"), callback_data="lg")],
-    ])
+def _join_deeplink(username: str, chat_id: int) -> str:
+    return f"https://t.me/{username}?start=join_{chat_id}"
 
 
-async def _refresh_lobby(query, game) -> None:
+def _lobby_markup(lang: str = "ru", deeplink: str | None = None) -> InlineKeyboardMarkup:
+    rows = [[
+        InlineKeyboardButton(t(lang, "btn_join"), callback_data="lj"),
+        InlineKeyboardButton(t(lang, "btn_leave"), callback_data="ll"),
+    ]]
+    if deeplink:
+        rows.append([InlineKeyboardButton(t(lang, "btn_join_pm"), url=deeplink)])
+    rows.append([InlineKeyboardButton(t(lang, "btn_start"), callback_data="lg")])
+    return InlineKeyboardMarkup(rows)
+
+
+def _lobby_kb(context, game) -> InlineKeyboardMarkup:
+    username = getattr(context.bot, "username", None)
+    deeplink = _join_deeplink(username, game.chat_id) if username else None
+    return _lobby_markup(game.lang, deeplink)
+
+
+async def _render_lobby(context, game) -> None:
+    """Перерисовывает закреплённое сообщение-набор по сохранённому id."""
+    msg_id = getattr(game, "_lobby_msg_id", None)
+    if msg_id is None:
+        return
     try:
-        await query.edit_message_text(
-            game.lobby_text() + "\n\n" + t(game.lang, "lobby_hint"),
-            parse_mode="HTML",
-            reply_markup=_lobby_markup(game.lang),
+        await context.bot.edit_message_text(
+            chat_id=game.chat_id, message_id=msg_id,
+            text=game.lobby_text() + "\n\n" + t(game.lang, "lobby_hint"),
+            parse_mode="HTML", reply_markup=_lobby_kb(context, game),
         )
     except Exception:
-        pass  # сообщение не изменилось — Telegram ругается, игнорируем
+        pass  # не изменилось — Telegram ругается, игнорируем
+
+
+async def _unpin_lobby(context, game) -> None:
+    if getattr(game, "_pinned", False):
+        try:
+            await context.bot.unpin_chat_message(game.chat_id, game._lobby_msg_id)
+        except Exception:
+            pass
 
 
 async def on_lobby_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -583,7 +640,7 @@ async def on_lobby_join(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
     if game.add_player(_player_from_user(query.from_user)):
         await query.answer("Ты в игре!")
-        await _refresh_lobby(query, game)
+        await _render_lobby(context, game)
     else:
         await query.answer("Ты уже в списке или мест нет.")
 
@@ -596,13 +653,14 @@ async def on_lobby_leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         return
     if game.remove_player(query.from_user.id):
         await query.answer("Ты вышел.")
-        await _refresh_lobby(query, game)
+        await _render_lobby(context, game)
     else:
         await query.answer("Тебя и не было в списке.")
 
 
 async def _launch_game(context: ContextTypes.DEFAULT_TYPE, game) -> None:
     _cancel_lobby_timer(game)
+    await _unpin_lobby(context, game)
     stats.game_started(game.slug, game.chat_id, list(game.players.keys()))
     await game.start(context.bot)
     if isinstance(game, MafiaGame):
@@ -1076,6 +1134,7 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text(t(game.lang, "only_host"))
         return
     _cancel_lobby_timer(game)
+    await _unpin_lobby(context, game)
     rooms.clear(chat_id)
     await update.message.reply_text(
         t(game.lang, "stopped_by_admin" if (is_admin and not is_host) else "stopped"))

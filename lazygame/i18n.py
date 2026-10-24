@@ -71,6 +71,11 @@ T: dict[str, dict[str, str]] = {
     },
     "btn_join": {"ru": "✅ Войти", "en": "✅ Join", "uk": "✅ Увійти"},
     "btn_leave": {"ru": "🚪 Выйти", "en": "🚪 Leave", "uk": "🚪 Вийти"},
+    "btn_join_pm": {
+        "ru": "🤖 Войти через бота (для ролей)",
+        "en": "🤖 Join via bot (for roles)",
+        "uk": "🤖 Увійти через бота (для ролей)",
+    },
     "btn_start": {"ru": "▶️ Начать", "en": "▶️ Start", "uk": "▶️ Почати"},
     "btn_settings": {"ru": "⚙️ Настройки", "en": "⚙️ Settings", "uk": "⚙️ Налаштування"},
     "lobby_hint": {
