@@ -1,0 +1,16 @@
+services:
+  lazygame:
+    build: .
+    restart: unless-stopped
+    environment:
+      # токен берётся из твоего .env рядом с этим файлом (в git не коммитится)
+      - BOT_TOKEN=${BOT_TOKEN}
+      - ADMIN_ID=${ADMIN_ID:-}
+      - WEBAPP_URL=${WEBAPP_URL:-}
+      - LAZYGAME_DB=/app/data/lazygame.db
+    volumes:
+      # постоянное хранилище: настройки, статистика, рекорды переживают рестарт
+      - lazygame_data:/app/data
+
+volumes:
+  lazygame_data:

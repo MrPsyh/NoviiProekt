@@ -1,0 +1,32 @@
+# Secrets — NEVER commit the real token
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Generated card images
+lazygame/assets/generated/
+
+# Runtime data (persistent storage)
+lazygame/data/stats.json
+lazygame/data/stats.json.tmp
+lazygame/data/lazygame.db
+lazygame/data/lazygame.db-wal
+lazygame/data/lazygame.db-shm
+
+# Скачанные арты бравлеров — собственность Supercell, в репозиторий не коммитим
+lazygame/assets/brawlers/*.png
+lazygame/assets/brawlers/*.webp
+lazygame/assets/brawlers/*.jpg
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

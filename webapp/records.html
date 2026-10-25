@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LazyGame — рекорды</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg-top:#21173f; --bg-bot:#0c0a18; --panel:#2e2846; --panel2:#3a3256;
+    --text:#edebf7; --muted:#a8a2c4;
+    --violet:#8e70ff; --gold:#ffce61; --pink:#ff6392; --green:#56d6a0; --cyan:#4ecee8;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    color:var(--text); background:linear-gradient(160deg,var(--bg-top),var(--bg-bot) 70%);
+    min-height:100vh; padding:16px 16px 40px;}
+  .head{display:flex; align-items:center; gap:14px; margin:6px 2px 16px;}
+  .mono{width:54px;height:54px;border-radius:15px;background:var(--gold);display:flex;
+    align-items:center;justify-content:center;color:#17122a;font-weight:800;font-size:26px;}
+  .head h1{margin:0;font-size:22px;} .head p{margin:2px 0 0;color:var(--muted);font-size:12px;}
+  .scope{display:flex; gap:8px; margin:10px 0 14px;}
+  .scope button{flex:1; padding:12px; border:none; border-radius:12px; font-size:15px;
+    font-weight:700; background:var(--panel); color:var(--muted); cursor:pointer;}
+  .scope button.on{background:var(--gold); color:#17122a;}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+  .chip{padding:8px 12px; border-radius:999px; background:var(--panel); color:var(--text);
+    font-size:13px; cursor:pointer; border:1px solid transparent;}
+  .chip.on{border-color:var(--gold); background:var(--panel2);}
+  .row{display:flex; align-items:center; gap:12px; background:var(--panel);
+    border-radius:14px; padding:12px 14px; margin-bottom:8px;}
+  .rank{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:800;background:var(--panel2);color:var(--text);flex:0 0 auto;}
+  .rank.g1{background:var(--gold);color:#17122a;} .rank.g2{background:#c8cdd8;color:#17122a;}
+  .rank.g3{background:#cd8c5f;color:#17122a;}
+  .row .nm{flex:1; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .row .pt{color:var(--gold); font-weight:800;}
+  .muted{color:var(--muted); font-size:13px; padding:8px 2px;}
+  h2{font-size:16px; margin:20px 2px 10px;}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="mono">★</div>
+    <div><h1>Рекорды LazyGame</h1><p id="sub">топы игроков</p></div>
+  </div>
+  <div class="scope" id="scope"></div>
+  <div class="chips" id="chips"></div>
+  <div id="list"></div>
+  <h2 id="tcTitle" style="display:none">🏠 Топ чатов (по играм)</h2>
+  <div id="topchats"></div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg){ tg.ready(); tg.expand(); }
+
+function b64urlDecode(s){
+  s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='=';
+  const bin = atob(s); const bytes = Uint8Array.from(bin, c=>c.charCodeAt(0));
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+let data = {games:{}, world:{}, chat:{}, top_chats:[], has_chat:false};
+try{
+  const p = new URLSearchParams(location.search).get('d');
+  if (p) data = JSON.parse(b64urlDecode(p));
+}catch(e){}
+
+const slugs = Object.keys(data.games || {});
+let scope = data.has_chat ? 'chat' : 'world';
+let slug = slugs[0] || null;
+
+function esc(s){ return (s||'—').replace(/</g,'&lt;'); }
+
+function renderScope(){
+  const sc = document.getElementById('scope');
+  sc.innerHTML = '';
+  const opts = [['world','🌍 Весь мир']];
+  if (data.has_chat) opts.unshift(['chat','🏠 Этот чат']);
+  opts.forEach(([k,label])=>{
+    const b = document.createElement('button');
+    b.textContent = label; if (k===scope) b.className = 'on';
+    b.onclick = ()=>{ scope = k; renderAll(); };
+    sc.appendChild(b);
+  });
+}
+
+function renderChips(){
+  const box = document.getElementById('chips'); box.innerHTML='';
+  slugs.forEach(s=>{
+    const c = document.createElement('div');
+    c.className = 'chip' + (s===slug?' on':'');
+    c.textContent = data.games[s];
+    c.onclick = ()=>{ slug = s; renderAll(); };
+    box.appendChild(c);
+  });
+}
+
+function renderList(){
+  const box = document.getElementById('list');
+  const rows = ((scope==='chat' ? data.chat : data.world)[slug]) || [];
+  document.getElementById('sub').textContent =
+    (data.games[slug]||'') + ' · ' + (scope==='chat'?'этот чат':'весь мир');
+  if (!rows.length){ box.innerHTML = '<div class="muted">Пока нет результатов — сыграйте первыми!</div>'; return; }
+  box.innerHTML = rows.slice(0,10).map((r,i)=>`
+    <div class="row">
+      <div class="rank ${i<3?'g'+(i+1):''}">${i+1}</div>
+      <div class="nm">${esc(r.name)}</div>
+      <div class="pt">${r.points}</div>
+    </div>`).join('');
+}
+
+function renderTopChats(){
+  const tc = data.top_chats || [];
+  if (!tc.length) return;
+  document.getElementById('tcTitle').style.display = 'block';
+  document.getElementById('topchats').innerHTML = tc.slice(0,10).map((c,i)=>`
+    <div class="row">
+      <div class="rank ${i<3?'g'+(i+1):''}">${i+1}</div>
+      <div class="nm">${esc(c.title)}</div>
+      <div class="pt">${c.games} игр</div>
+    </div>`).join('');
+}
+
+function renderAll(){ renderScope(); renderChips(); renderList(); }
+if (!slug){
+  document.getElementById('list').innerHTML = '<div class="muted">Нет данных о рекордах.</div>';
+} else {
+  renderAll(); renderTopChats();
+}
+</script>
+</body>
+</html>

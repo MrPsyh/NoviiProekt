@@ -1,0 +1,24 @@
+# Render Blueprint для LazyGame (бот как worker, без HTTP).
+# В дашборде: New → Blueprint → выбери репозиторий.
+services:
+  - type: worker
+    name: lazygame-bot
+    env: docker
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: BOT_TOKEN      # задай значение в дашборде (secret), не здесь
+        sync: false
+      - key: ADMIN_ID
+        sync: false
+      - key: WEBAPP_URL
+        sync: false
+      - key: LAZYGAME_DB
+        value: /app/data/lazygame.db
+    # Постоянный диск нужен, чтобы статистика/рекорды переживали рестарт.
+    # На бесплатном плане дисков нет — тогда убери блок disk (данные будут
+    # сбрасываться при передеплое) или возьми платный план.
+    disk:
+      name: data
+      mountPath: /app/data
+      sizeGB: 1
