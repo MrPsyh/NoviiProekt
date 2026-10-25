@@ -195,6 +195,10 @@ class SpyGame(BaseGame):
 
     async def _end(self, bot: Bot, players_win: bool, note: str = "") -> None:
         self.phase = Phase.FINISHED
+        if players_win:
+            self.record_scores({u: 1 for u in self.players if u != self.spy_id})
+        else:
+            self.record_scores({self.spy_id: 1})
         winner = "🏙 Мирные победили!" if players_win else "🕵️ Шпион победил!"
         prefix = (note + "\n\n") if note else ""
         await bot.send_message(

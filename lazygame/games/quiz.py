@@ -73,6 +73,7 @@ class QuizGame(BaseGame):
 
     async def _finish(self, bot: Bot) -> None:
         self.phase = Phase.FINISHED
+        self.record_scores({self.host.user_id: self.score})
         total = len(self.questions)
         if self.score == total:
             verdict = "🏆 Идеально! Ты эрудит!"

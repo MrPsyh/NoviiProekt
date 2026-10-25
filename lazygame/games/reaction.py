@@ -74,6 +74,7 @@ class ReactionGame(BaseGame):
 
     async def _finish(self, bot: Bot) -> None:
         self.phase = Phase.FINISHED
+        self.record_scores(dict(self.scores))
         if self.scores:
             ranked = sorted(self.scores.items(), key=lambda kv: kv[1], reverse=True)
             board = "\n".join(f"• {self.players[u].name}: {s}" for u, s in ranked)

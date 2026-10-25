@@ -34,7 +34,8 @@ from telegram.ext import (
     filters,
 )
 
-from .cards import render_admin_panel, render_welcome
+from .cards import render_admin_panel, render_records, render_welcome
+from . import leaderboard
 from .config import ADMIN_ID, BOT_TOKEN, WEBAPP_URL
 from .games import (
     AnagramGame,
@@ -185,6 +186,7 @@ async def _sweep_loop(app) -> None:
                             await app.bot.unpin_chat_message(cid, game._lobby_msg_id)
                         except Exception:
                             pass
+                    _record_continuous(game)
                     rooms.clear(cid)
         except asyncio.CancelledError:
             return
@@ -296,9 +298,12 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             "<blockquote>Совет: держи этот чат открытым — сюда я присылаю слова "
             "и роли во время игр.</blockquote>"
         )
-        kb = _webapp_reply_keyboard()
+        markup = None
+        if WEBAPP_URL:
+            markup = InlineKeyboardMarkup([[InlineKeyboardButton(
+                "🎮 Войти в соло-игры", web_app=WebAppInfo(url=WEBAPP_URL))]])
         await update.message.reply_photo(
-            _welcome_photo(), caption=caption, parse_mode="HTML", reply_markup=kb
+            _welcome_photo(), caption=caption, parse_mode="HTML", reply_markup=markup
         )
     else:
         await update.message.reply_photo(
@@ -690,6 +695,12 @@ async def on_lobby_leave(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
         await _render_lobby(context, game)
     else:
         await query.answer("Тебя и не было в списке.")
+
+
+def _record_continuous(game) -> None:
+    """Крокодил не завершается сам — фиксируем его очки при остановке/очистке."""
+    if isinstance(game, CrocodileGame) and getattr(game, "scores", None):
+        game.record_scores(dict(game.scores))
 
 
 async def _launch_game(context: ContextTypes.DEFAULT_TYPE, game) -> None:
@@ -1250,6 +1261,7 @@ async def cmd_stop(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     _cancel_lobby_timer(game)
     await _unpin_lobby(context, game)
+    _record_continuous(game)
     rooms.clear(chat_id)
     await update.message.reply_text(
         t(game.lang, "stopped_by_admin" if (is_admin and not is_host) else "stopped"))
@@ -1333,11 +1345,101 @@ async def cmd_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
                                         reply_markup=buttons)
 
 
+# ======================================================================
+# Рекорды / лидерборд
+# ======================================================================
+def _clean_name(slug: str) -> str:
+    return leaderboard.RANKED_GAMES[slug].split(maxsplit=1)[-1]
+
+
+def _top_rows(slug: str, scope: str, chat_id: int) -> list[dict]:
+    if scope == "chat":
+        return leaderboard.chat_top(slug, chat_id)
+    return leaderboard.world_top(slug)
+
+
+def _scope_label(scope: str) -> str:
+    # без эмодзи — используется в подписи картинки (Pillow рисует эмодзи квадратом)
+    return "Этот чат" if scope == "chat" else "Весь мир"
+
+
+def _records_webapp_button(chat_id: int, is_private: bool) -> InlineKeyboardButton | None:
+    if not WEBAPP_URL:
+        return None
+    import base64
+    import json as _json
+    snap = leaderboard.build_snapshot(chat_id)
+    payload = base64.urlsafe_b64encode(_json.dumps(snap, ensure_ascii=False).encode()).decode()
+    url = WEBAPP_URL.rstrip("/") + "/records.html?d=" + payload
+    if len(url) > 3800:  # не раздуваем ссылку сверх меры
+        url = WEBAPP_URL.rstrip("/") + "/records.html"
+    if is_private:
+        return InlineKeyboardButton("📊 Открыть страницу рекордов", web_app=WebAppInfo(url=url))
+    return InlineKeyboardButton("📊 Открыть страницу рекордов", url=url)
+
+
+def _top_markup(slug: str, scope: str, chat_id: int, is_private: bool) -> InlineKeyboardMarkup:
+    rows = [[
+        InlineKeyboardButton(("• " if scope == "chat" else "") + "🏠 Чат",
+                             callback_data=f"tv:{slug}:chat"),
+        InlineKeyboardButton(("• " if scope == "world" else "") + "🌍 Мир",
+                             callback_data=f"tv:{slug}:world"),
+    ]]
+    slugs = list(leaderboard.RANKED_GAMES)
+    for i in range(0, len(slugs), 2):
+        row = []
+        for s in slugs[i:i + 2]:
+            mark = "• " if s == slug else ""
+            row.append(InlineKeyboardButton(mark + leaderboard.RANKED_GAMES[s],
+                                            callback_data=f"tv:{s}:{scope}"))
+        rows.append(row)
+    btn = _records_webapp_button(chat_id, is_private)
+    if btn:
+        rows.append([btn])
+    return InlineKeyboardMarkup(rows)
+
+
+async def cmd_top(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat_id = update.effective_chat.id
+    is_private = update.effective_chat.type == ChatType.PRIVATE
+    scope = "world" if is_private else "chat"
+    # игра по умолчанию — первая, где есть результаты, иначе первая в списке
+    ranked = list(leaderboard.RANKED_GAMES)
+    with_scores = leaderboard.games_with_scores()
+    slug = next((s for s in ranked if s in with_scores), ranked[0])
+    rows = _top_rows(slug, scope, chat_id)
+    await update.message.reply_photo(
+        render_records(_clean_name(slug), _scope_label(scope), rows),
+        caption="🏆 <b>Рекорды</b> — выбери игру и масштаб кнопками ниже.",
+        parse_mode="HTML",
+        reply_markup=_top_markup(slug, scope, chat_id, is_private))
+
+
+async def on_top_view(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    from telegram import InputMediaPhoto
+    query = update.callback_query
+    await query.answer()
+    _, slug, scope = query.data.split(":")
+    chat_id = query.message.chat.id
+    is_private = query.message.chat.type == ChatType.PRIVATE
+    rows = _top_rows(slug, scope, chat_id)
+    media = InputMediaPhoto(
+        render_records(_clean_name(slug), _scope_label(scope), rows),
+        caption="🏆 <b>Рекорды</b> — выбери игру и масштаб кнопками ниже.",
+        parse_mode="HTML")
+    try:
+        await query.edit_message_media(
+            media, reply_markup=_top_markup(slug, scope, chat_id, is_private))
+    except Exception:
+        pass
+
+
 async def _post_init(app: Application) -> None:
     """Прописывает меню команд (всплывает при вводе «/») и кнопку мини-аппа."""
     await app.bot.set_my_commands([
         BotCommand("newgame", "Групповая игра"),
         BotCommand("play", "Соло-игра в личке"),
+        BotCommand("top", "Рекорды и топы"),
         BotCommand("settings", "Настройки (лимиты игроков)"),
         BotCommand("go", "Начать игру"),
         BotCommand("stop", "Остановить игру"),
@@ -1373,6 +1475,8 @@ def build_application() -> Application:
     app.add_handler(CommandHandler("help", cmd_help))
     app.add_handler(CommandHandler("newgame", cmd_newgame))
     app.add_handler(CommandHandler("play", cmd_play))
+    app.add_handler(CommandHandler("top", cmd_top))
+    app.add_handler(CommandHandler("records", cmd_top))
     app.add_handler(CommandHandler("admin", cmd_admin))
     app.add_handler(CommandHandler("settings", cmd_settings))
     app.add_handler(CommandHandler("go", cmd_go))
@@ -1401,6 +1505,7 @@ def build_application() -> Application:
     app.add_handler(CallbackQueryHandler(on_whois_result, pattern=r"^wresult$"))
     app.add_handler(CallbackQueryHandler(on_never_react, pattern=r"^nv:"))
     app.add_handler(CallbackQueryHandler(on_never_next, pattern=r"^nnext$"))
+    app.add_handler(CallbackQueryHandler(on_top_view, pattern=r"^tv:"))
     app.add_handler(CallbackQueryHandler(on_settings_open, pattern=r"^settings$"))
     app.add_handler(CallbackQueryHandler(on_settings_change, pattern=r"^st:"))
     app.add_handler(CallbackQueryHandler(on_lobby_join, pattern=r"^lj$"))

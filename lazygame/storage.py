@@ -36,6 +36,12 @@ def _c() -> sqlite3.Connection:
             CREATE TABLE IF NOT EXISTS stat_games(slug TEXT PRIMARY KEY, cnt INTEGER DEFAULT 0);
             CREATE TABLE IF NOT EXISTS stat_users(user_id INTEGER PRIMARY KEY);
             CREATE TABLE IF NOT EXISTS stat_meta(k TEXT PRIMARY KEY, v TEXT);
+            CREATE TABLE IF NOT EXISTS scores(
+                slug TEXT, chat_id INTEGER, user_id INTEGER, name TEXT,
+                points INTEGER DEFAULT 0,
+                PRIMARY KEY(slug, chat_id, user_id));
+            CREATE INDEX IF NOT EXISTS idx_scores_slug ON scores(slug);
+            CREATE INDEX IF NOT EXISTS idx_scores_chat ON scores(slug, chat_id);
             """
         )
         _conn.commit()
@@ -136,6 +142,53 @@ def chats_dict() -> dict[str, dict]:
                 "games": r["games"], "last": r["last"],
             }
         return out
+
+
+def add_scores(slug: str, chat_id: int, entries) -> None:
+    """entries: список (user_id, name, points). Накапливаем очки."""
+    with _lock:
+        c = _c()
+        for uid, name, pts in entries:
+            if not pts:
+                continue
+            c.execute(
+                "INSERT INTO scores(slug, chat_id, user_id, name, points) VALUES(?,?,?,?,?) "
+                "ON CONFLICT(slug, chat_id, user_id) DO UPDATE SET "
+                "points=points+excluded.points, name=excluded.name",
+                (slug, chat_id, int(uid), name, int(pts)))
+        c.commit()
+
+
+def chat_top(slug: str, chat_id: int, limit: int = 10) -> list[dict]:
+    with _lock:
+        rows = _c().execute(
+            "SELECT name, points FROM scores WHERE slug=? AND chat_id=? "
+            "ORDER BY points DESC LIMIT ?", (slug, chat_id, limit)).fetchall()
+        return [{"name": r["name"], "points": r["points"]} for r in rows]
+
+
+def world_top(slug: str, limit: int = 10) -> list[dict]:
+    with _lock:
+        rows = _c().execute(
+            "SELECT user_id, MAX(name) AS name, SUM(points) AS pts FROM scores "
+            "WHERE slug=? GROUP BY user_id ORDER BY pts DESC LIMIT ?",
+            (slug, limit)).fetchall()
+        return [{"name": r["name"], "points": r["pts"]} for r in rows]
+
+
+def top_chats(limit: int = 10) -> list[dict]:
+    with _lock:
+        rows = _c().execute(
+            "SELECT title, games FROM stat_chats ORDER BY games DESC LIMIT ?",
+            (limit,)).fetchall()
+        return [{"title": r["title"], "games": r["games"]} for r in rows]
+
+
+def games_with_scores() -> list[str]:
+    with _lock:
+        rows = _c().execute(
+            "SELECT DISTINCT slug FROM scores WHERE points>0").fetchall()
+        return [r["slug"] for r in rows]
 
 
 def snapshot() -> dict:

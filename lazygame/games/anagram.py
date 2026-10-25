@@ -76,6 +76,7 @@ class AnagramGame(BaseGame):
         self.index += 1
         if self.index >= len(self.words):
             self.phase = Phase.FINISHED
+            self.record_scores({self.host.user_id: self.score})
             await bot.send_message(
                 self.chat_id,
                 f"🏁 Готово! Результат: <b>{self.score}/{len(self.words)}</b>\n"

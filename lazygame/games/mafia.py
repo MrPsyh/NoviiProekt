@@ -253,6 +253,11 @@ class MafiaGame(BaseGame):
 
         if winner:
             self.phase = Phase.FINISHED
+            mafia_won = mafia_alive >= others_alive and mafia_alive > 0
+            self.record_scores({
+                p.user_id: 1 for p in self.players.values()
+                if (p.data.get("role") == ROLE_MAFIA) == mafia_won
+            })
             roles = "\n".join(
                 f"• {p.name} — {ROLE_NAMES[p.data['role']]}"
                 for p in self.players.values()

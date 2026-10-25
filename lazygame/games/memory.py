@@ -61,6 +61,7 @@ class MemoryGame(BaseGame):
                 await self._next_round(bot)
         else:
             self.phase = Phase.FINISHED
+            self.record_scores({self.host.user_id: len(self.seq) - 1})
             await bot.send_message(
                 self.chat_id,
                 f"❌ Ошибка!\nТвой результат: <b>{len(self.seq) - 1}</b> уровней.\n"

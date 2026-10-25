@@ -40,6 +40,7 @@ class GuessNumberGame(BaseGame):
         self.tries -= 1
         if guess == self.secret:
             self.phase = Phase.FINISHED
+            self.record_scores({self.host.user_id: self.tries + 1})  # меньше попыток — больше очков
             await bot.send_message(
                 self.chat_id,
                 t(self.lang, "num_win", n=self.secret, tries=MAX_TRIES - self.tries),

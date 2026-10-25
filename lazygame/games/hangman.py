@@ -100,6 +100,7 @@ class HangmanGame(BaseGame):
 
     async def _finish(self, bot: Bot, won: bool, by: Player) -> None:
         self.phase = Phase.FINISHED
+        self.record_scores(dict(self.scores))
         key = "hang_win" if won else "hang_lose"
         head = t(self.lang, key, word=self.word, name=by.name)
         replay = t(self.lang, "replay")

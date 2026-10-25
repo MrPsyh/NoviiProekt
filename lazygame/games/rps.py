@@ -57,6 +57,8 @@ class RPSGame(BaseGame):
 
         if self.player_score >= WIN_TARGET or self.bot_score >= WIN_TARGET:
             self.phase = Phase.FINISHED
+            if self.player_score > self.bot_score:
+                self.record_scores({self.host.user_id: 1})
             final_key = "rps_final_win" if self.player_score > self.bot_score else "rps_final_lose"
             final = t(self.lang, final_key, ps=self.player_score, bs=self.bot_score)
             await bot.send_message(self.chat_id, f"{line}\n\n{final}")

@@ -73,6 +73,16 @@ class BaseGame:
     def is_participant(self, user_id: int) -> bool:
         return user_id in self.players
 
+    def record_scores(self, points: dict[int, int]) -> None:
+        """Записывает очки игроков в таблицу рекордов (по чату и миру)."""
+        from ..leaderboard import record
+        entries = [
+            (uid, self.players[uid].name if uid in self.players else str(uid), pts)
+            for uid, pts in points.items() if pts
+        ]
+        if entries:
+            record(self.slug, self.chat_id, entries)
+
     def lobby_text(self) -> str:
         from ..i18n import LANGUAGES, t
         names = "\n".join(f"• {p.mention}" for p in self.players.values())

@@ -294,6 +294,42 @@ def render_brawler_card(ru_name: str, rarity: str) -> BytesIO:
     return c.finalize("brawler.png")
 
 
+def render_records(game_name: str, scope_label: str, rows: list[dict]) -> BytesIO:
+    """Лидерборд: заголовок + список мест (name, points)."""
+    rows = rows[:10]
+    n = len(rows)
+    height = 250 + max(1, n) * 66 + 36
+    c = Canvas(900, height)
+    c.gradient(BG_TOP, BG_BOT)
+    c.circle(800, 110, 160, (255, 206, 97, 30))
+
+    _header(c, "★", "РЕКОРДЫ", f"{game_name} · {scope_label}", GOLD)
+
+    medal = {0: GOLD, 1: (200, 205, 220), 2: (205, 140, 95)}
+    y = 180
+    if not rows:
+        c.rrect([48, y, 852, y + 60], radius=16, fill=PANEL)
+        c.text((72, y + 16), "Пока нет результатов — сыграйте первыми!", 26, MUTED)
+    for i, row in enumerate(rows):
+        accent = medal.get(i, PANEL2)
+        c.rrect([48, y, 852, y + 56], radius=14, fill=PANEL)
+        # кружок с местом
+        c.circle(84, y + 28, 20, accent)
+        num_color = (20, 16, 32) if i < 3 else TEXT
+        c.text_center(84, y + 10, str(i + 1), 28, num_color, bold=True)
+        name = row.get("name", "—")
+        if c.textlen(name, 28, bold=True) > 560:
+            while name and c.textlen(name + "…", 28, bold=True) > 560:
+                name = name[:-1]
+            name += "…"
+        c.text((124, y + 12), name, 28, TEXT, bold=True)
+        pts = str(row.get("points", 0))
+        c.text((852 - 40 - c.textlen(pts, 30, bold=True), y + 11), pts, 30, GOLD, bold=True)
+        y += 66
+
+    return c.finalize("records.png")
+
+
 def render_avatar() -> BytesIO:
     """Квадратная аватарка бота (Telegram обрежет в круг — важное в центре)."""
     c = Canvas(640, 640)

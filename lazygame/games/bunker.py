@@ -200,6 +200,7 @@ class BunkerGame(BaseGame):
     async def _check_end(self, bot: Bot) -> None:
         if len(self.alive) <= self.capacity:
             self.phase = Phase.FINISHED
+            self.record_scores({u: 1 for u in self.alive})
             survivors = "\n".join(f"• {self.players[u].mention}" for u in self.alive)
             await bot.send_message(
                 self.chat_id,

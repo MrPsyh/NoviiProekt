@@ -37,6 +37,20 @@ def test_stats_counts():
     assert "-200" not in stats.chats
 
 
+def test_leaderboard_accumulates_and_ranks():
+    from lazygame import leaderboard
+    leaderboard.record("quiz", 111, [(1, "Аня", 5), (2, "Боря", 3)])
+    leaderboard.record("quiz", 222, [(1, "Аня", 4)])  # другой чат
+    world = leaderboard.world_top("quiz")
+    names = [r["name"] for r in world]
+    assert names[0] == "Аня"  # 5+4=9, топ мира
+    chat = leaderboard.chat_top("quiz", 111)
+    assert {r["name"] for r in chat} == {"Аня", "Боря"}
+    # игра вне рейтинга не пишется
+    leaderboard.record("whois", 111, [(1, "Аня", 5)])
+    assert "whois" not in leaderboard.games_with_scores()
+
+
 def test_i18n_all_languages_have_keys():
     # ключевые строки должны существовать на всех языках без падения
     for lang in LANGUAGES:
