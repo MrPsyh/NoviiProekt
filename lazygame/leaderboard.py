@@ -6,7 +6,7 @@ from . import storage
 # какие игры участвуют в рейтинге и как называются в UI
 RANKED_GAMES = {
     "crocodile": "🐊 Крокодил",
-    "hangman": "🪢 Виселица",
+    "hangman": "🪢 Весельница",
     "reaction": "⚡ Реакция",
     "mafia": "🔪 Мафия",
     "bunker": "🏚 Бункер",

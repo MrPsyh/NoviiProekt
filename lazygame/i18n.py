@@ -157,7 +157,7 @@ T: dict[str, dict[str, str]] = {
         "uk": "Поки ніхто не вгадав.",
     },
 
-    # --- Виселица ---
+    # --- Весельница ---
     "hang_start": {
         "ru": "🪢 Загадано слово из {n} букв.\nПишите буквы в чат! Можно назвать слово целиком.\nОшибок до проигрыша: {max}.",
         "en": "🪢 A word of {n} letters.\nType letters in the chat! You can also guess the whole word.\nWrong guesses allowed: {max}.",

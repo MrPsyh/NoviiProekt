@@ -29,7 +29,7 @@ GREEN = (86, 214, 160)
 CYAN = (80, 206, 232)
 RED = (240, 110, 110)
 
-# «тетрадная» бумага и карандаш для скетч-виселицы
+# «тетрадная» бумага и карандаш для скетч-весельницы
 PAPER = (240, 236, 223)
 PAPER_LINE = (203, 214, 226)
 PENCIL = (46, 44, 52)
@@ -202,7 +202,7 @@ def render_welcome(games: list[tuple[str, str]]) -> BytesIO:
 
 _GAME_SHORT = {
     "crocodile": "Крокодил", "bunker": "Бункер", "mafia": "Мафия",
-    "hangman": "Виселица", "truthdare": "Правда/Д", "quiz": "Викторина",
+    "hangman": "Весельница", "truthdare": "Правда/Д", "quiz": "Викторина",
     "guessnum": "Число", "rps": "КНБ",
 }
 
@@ -405,7 +405,7 @@ def render_word_card(word: str, difficulty: str) -> BytesIO:
 
 
 # ======================================================================
-# Виселица
+# Весельница
 # ======================================================================
 def _letter_tiles(c: Canvas, text: str, x: int, y: int, accent: tuple,
                   tile: int = 56, gap: int = 10) -> None:
@@ -463,7 +463,7 @@ def render_hangman(masked: str, wrong_letters: list[str], stage: int,
     # один и тот же «почерк» для всех этапов одного слова
     rng = random.Random(1000 + len(masked) * 7 + max_stage)
 
-    _header(c, "H", "ВИСЕЛИЦА", f"ошибок: {stage}/{max_stage}", accent)
+    _header(c, "H", "ВЕСЕЛЬНИЦА", f"ошибок: {stage}/{max_stage}", accent)
 
     # лист бумаги
     c.rrect([60, 168, 700, 690], radius=22, fill=PAPER)
@@ -471,7 +471,7 @@ def render_hangman(masked: str, wrong_letters: list[str], stage: int,
         c.line([(84, ly), (676, ly)], PAPER_LINE, 1)
     c.line([(150, 176), (150, 682)], (233, 175, 175), 2)  # поля тетради
 
-    # Виселица строится карандашом по мере ошибок (до 10 этапов).
+    # Весельница строится карандашом по мере ошибок (до 10 этапов).
     # Чтобы при меньшем max_stage всё равно получалась полная картинка,
     # масштабируем номера этапов постройки под фактический max_stage.
     def on(step: int) -> bool:

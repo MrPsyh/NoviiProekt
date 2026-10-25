@@ -80,7 +80,7 @@ WELCOME_GAMES = [
     ("Крокодил", "объясняй слово без слов"),
     ("Бункер", "переживи катастрофу"),
     ("Мафия", "найди мафию в городе"),
-    ("Виселица", "угадай слово по буквам"),
+    ("Весельница", "угадай слово по буквам"),
     ("Правда/Действие", "выбери и выполни"),
     ("Викторина", "соло в личке с ботом"),
 ]
@@ -246,7 +246,7 @@ async def on_my_chat_member(update: Update, context: ContextTypes.DEFAULT_TYPE) 
         await context.bot.send_message(
             chat_id,
             "👋 Я <b>LazyGame</b>! Спасибо, что добавили.\n\n"
-            "⚠️ Чтобы я видел сообщения в чате (для Крокодила и Виселицы) и мог "
+            "⚠️ Чтобы я видел сообщения в чате (для Крокодила и Весельницы) и мог "
             "вести игры — <b>сделайте меня администратором</b>:\n"
             "Настройки группы → Администраторы → Добавить → выберите меня.\n\n"
             "После этого напишите /newgame.",
@@ -292,7 +292,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         caption = (
             "Привет! Я <b>LazyGame</b> 🎲\n\n"
             "🎮 <b>В личке</b> со мной можно играть соло — жми /play "
-            "(Виселица и Викторина).\n"
+            "(Весельница и Викторина).\n"
             "👥 <b>В группе</b> — весёлые игры на компанию: добавь меня, сделай "
             "админом и напиши /newgame.\n\n"
             "<blockquote>Совет: держи этот чат открытым — сюда я присылаю слова "
@@ -412,13 +412,13 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/settings — настройки (лимиты игроков)\n"
         "/go — начать игру (ведущий)\n"
         "/stop — остановить игру (ведущий)\n\n"
-        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Виселица, Правда/Действие, "
+        "<b>👥 В группе:</b> Крокодил, Бункер, Мафия, Весельница, Правда/Действие, "
         "Шпион, Реакция, Кто из нас?, Я никогда не…\n"
-        "<b>🙂 Соло в ЛС:</b> Виселица, Викторина, Угадай число, Камень-ножницы-бумага, "
+        "<b>🙂 Соло в ЛС:</b> Весельница, Викторина, Угадай число, Камень-ножницы-бумага, "
         "Повтори, Анаграммы\n\n"
         "<b>Крокодил:</b> /skip — пропустить слово, /score — счёт\n"
         "<b>Бункер:</b> /reveal — раскрыть характеристику, /vote — голосование\n"
-        "<b>Виселица:</b> пишите буквы в чат (10 попыток)\n"
+        "<b>Весельница:</b> пишите буквы в чат (10 попыток)\n"
         "<b>Мафия:</b> ночь — в личке, день — голосование кнопками",
         parse_mode="HTML",
     )
@@ -521,7 +521,7 @@ async def on_choose_game(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
     if rooms.has_active(chat_id):
         await query.edit_message_text(t(lang, "already_active"))
         return
-    if slug in DIFFICULTY_GAMES:  # сложность для Крокодила и Виселицы
+    if slug in DIFFICULTY_GAMES:  # сложность для Крокодила и Весельницы
         await query.edit_message_text(t(lang, "choose_diff"),
                                       reply_markup=_diff_markup(lang, "nd", slug))
         return
@@ -746,7 +746,7 @@ async def cmd_go(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ======================================================================
-# Текстовый ввод: Крокодил и Виселица
+# Текстовый ввод: Крокодил и Весельница
 # ======================================================================
 async def _mute_outsider(context, update, game) -> None:
     """Удаляет сообщение постороннего и выдаёт мут на MUTE_SECONDS."""
@@ -781,7 +781,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         return
     player = _player_from_user(update.effective_user)
     if isinstance(game, HangmanGame):
-        # Виселица работает и в группе, и соло в ЛС
+        # Весельница работает и в группе, и соло в ЛС
         await game.handle_input(context.bot, player, update.message.text)
     elif isinstance(game, (GuessNumberGame, AnagramGame)) and is_private:
         await game.handle_input(context.bot, player, update.message.text)

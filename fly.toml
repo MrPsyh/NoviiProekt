@@ -1,0 +1,23 @@
+# Fly.io — деплой LazyGame. Поменяй app на своё имя (fly launch создаст его сам).
+# Это бот на long-polling, HTTP-сервис не нужен.
+app = "lazygame-bot"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  LAZYGAME_DB = "/app/data/lazygame.db"
+
+# постоянный том для БД (настройки, статистика, рекорды)
+[mounts]
+  source = "lazygame_data"
+  destination = "/app/data"
+
+[processes]
+  app = "python -m lazygame.bot"
+
+# BOT_TOKEN задаётся секретом, НЕ в этом файле:
+#   fly secrets set BOT_TOKEN=xxxxx
+# Перед первым деплоем создай том:
+#   fly volumes create lazygame_data --size 1 --region fra
