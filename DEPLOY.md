@@ -1,5 +1,13 @@
 # 🚀 Деплой LazyGame 24/7
 
+**Самый быстрый способ — одна кнопка (Render Blueprint):**
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MrPsyh/NoviiProekt)
+
+Нажми → Render прочитает `render.yaml` → останется один раз вставить `BOT_TOKEN`
+в скрытое поле (в код он не попадает) → Apply. Диск для БД уже описан в конфиге.
+
+
 Бот работает на long-polling — внешний HTTP-порт не нужен. Нужен только
 постоянно запущенный процесс `python -m lazygame.bot` и переменная `BOT_TOKEN`.
 

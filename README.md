@@ -129,6 +129,10 @@ python -m lazygame.bot
 
 ## 🚀 Деплой 24/7
 
+**В один клик** (прочитает `render.yaml`, попросит вставить токен один раз):
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/MrPsyh/NoviiProekt)
+
 Подробные пошаговые инструкции — в **[DEPLOY.md](DEPLOY.md)** (Railway, Fly.io,
 Render, свой VPS; с постоянным томом для БД, чтобы рекорды не сбрасывались).
 Ниже — краткая версия.
