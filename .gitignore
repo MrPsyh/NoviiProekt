@@ -1,4 +1,7 @@
-node_modules/
 # Промокоды в открытом виде и пароль админки — не коммитить!
-admin/data/
 .DS_Store
+admin/data/
+dist/
+node_modules/
+remote-books/
+tools/.cache/

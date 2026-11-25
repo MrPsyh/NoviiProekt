@@ -1,11 +1,36 @@
 {
   "name": "lesefreund",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Немецкие книги с мгновенным переводом слов и фраз + локальная админ-панель промокодов",
   "scripts": {
     "start": "node tools/serve.js",
-    "admin": "node admin/server.js"
+    "admin": "node admin/server.js",
+    "import": "NODE_USE_ENV_PROXY=1 node --no-warnings tools/import-books.js",
+    "covers": "node tools/make-covers.js",
+    "android": "npx cap sync android && npx cap open android",
+    "ios": "npx cap sync ios && npx cap open ios",
+    "sync": "npx cap sync",
+    "dict": "node tools/build-dictionary.js",
+    "gutenberg": "NODE_USE_ENV_PROXY=1 node --no-warnings tools/gutenberg.js",
+    "bulk": "NODE_USE_ENV_PROXY=1 node --no-warnings tools/gutendex-import.js"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@capacitor-community/speech-recognition": "^7.0.1",
+    "@capacitor-community/text-to-speech": "^6.1.0",
+    "@capacitor/android": "^7.6.10",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.10",
+    "@capacitor/haptics": "^7.0.5",
+    "@capacitor/ios": "^7.6.10",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.10",
+    "@fontsource/literata": "^5.3.0"
+  }
 }

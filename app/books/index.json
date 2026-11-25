@@ -1,0 +1,829 @@
+[
+ {
+  "id": "anna-berlin",
+  "title": "Anna in Berlin",
+  "author": "Lesefreund",
+  "authorYears": null,
+  "year": null,
+  "translator": null,
+  "level": "A1",
+  "premium": false,
+  "collections": [
+   "graded"
+  ],
+  "description": {
+   "uk": "Анна вперше приїжджає до Берліна. Дуже прості речення для перших кроків.",
+   "ru": "Анна впервые приезжает в Берлин. Очень простые предложения.",
+   "en": "Anna visits Berlin for the first time. Very simple sentences."
+  },
+  "words": 147,
+  "chapters": 2,
+  "source": {
+   "name": "Lesefreund"
+  }
+ },
+ {
+  "id": "hund-max",
+  "title": "Der kleine Hund Max",
+  "author": "Lesefreund",
+  "authorYears": null,
+  "year": null,
+  "translator": null,
+  "level": "A1",
+  "premium": false,
+  "collections": [
+   "graded"
+  ],
+  "description": {
+   "uk": "Маленький пес Макс губиться в парку. Історія для зовсім початківців.",
+   "ru": "Маленький пёс Макс теряется в парке. История для самых начинающих.",
+   "en": "Max, a little dog, gets lost in the park. A story for absolute beginners."
+  },
+  "words": 135,
+  "chapters": 1,
+  "source": {
+   "name": "Lesefreund"
+  }
+ },
+ {
+  "id": "tag-am-meer",
+  "title": "Ein Tag am Meer",
+  "author": "Lesefreund",
+  "authorYears": null,
+  "year": null,
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "graded"
+  ],
+  "description": {
+   "uk": "Родина проводить день на Північному морі. Тренуємо минулий час Perfekt.",
+   "ru": "Семья проводит день на Северном море. Прошедшее время Perfekt.",
+   "en": "A family spends a day at the North Sea. Practises the Perfekt tense."
+  },
+  "words": 149,
+  "chapters": 2,
+  "source": {
+   "name": "Lesefreund"
+  }
+ },
+ {
+  "id": "haus-am-see",
+  "title": "Das alte Haus am See",
+  "author": "Lesefreund",
+  "authorYears": null,
+  "year": null,
+  "translator": null,
+  "level": "B1",
+  "premium": true,
+  "collections": [
+   "graded"
+  ],
+  "description": {
+   "uk": "Таємниця старого будинку й забутого листа. Präteritum і підрядні речення.",
+   "ru": "Небольшая загадочная история о старом доме и забытом письме. Präteritum, придаточные.",
+   "en": "A small mystery about an old house and a forgotten letter. Präteritum, subordinate clauses."
+  },
+  "words": 207,
+  "chapters": 2,
+  "source": {
+   "name": "Lesefreund"
+  }
+ },
+ {
+  "id": "die-nachricht",
+  "title": "Die Nachricht",
+  "author": "Lesefreund",
+  "authorYears": null,
+  "year": null,
+  "translator": null,
+  "level": "B2",
+  "premium": true,
+  "collections": [
+   "graded"
+  ],
+  "description": {
+   "uk": "Одне повідомлення змінює життя молодої журналістки. Konjunktiv II.",
+   "ru": "Одно сообщение меняет жизнь молодой журналистки. Konjunktiv II, сложные конструкции.",
+   "en": "One message changes the life of a young journalist. Konjunktiv II, complex structures."
+  },
+  "words": 206,
+  "chapters": 2,
+  "source": {
+   "name": "Lesefreund"
+  }
+ },
+ {
+  "id": "grimm-haensel",
+  "title": "Hänsel und Gretel",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "kids",
+   "school-ua"
+  ],
+  "description": {
+   "uk": "Брат і сестра губляться в лісі й знаходять пряниковий будиночок відьми. Казка братів Грімм в оригіналі.",
+   "ru": "Брат и сестра теряются в лесу и находят пряничный домик ведьмы. Сказка братьев Гримм в оригинале.",
+   "en": "A brother and sister lost in the forest find a witch’s gingerbread house. The original Grimm tale."
+  },
+  "words": 2686,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/H%C3%A4nsel_und_Grethel_(1857)"
+  }
+ },
+ {
+  "id": "grimm-rotkaeppchen",
+  "title": "Rotkäppchen",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Червона Шапочка, бабуся і вовк — найвідоміша казка світу в оригіналі братів Грімм.",
+   "ru": "Красная Шапочка, бабушка и волк — самая известная сказка в оригинале братьев Гримм.",
+   "en": "Little Red Riding Hood, grandmother and the wolf — the world’s best-known fairy tale."
+  },
+  "words": 1272,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Rothk%C3%A4ppchen_(1857)"
+  }
+ },
+ {
+  "id": "grimm-bremer",
+  "title": "Die Bremer Stadtmusikanten",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Осел, пес, кіт і півень вирушають до Бремена, щоб стати музикантами.",
+   "ru": "Осёл, пёс, кот и петух отправляются в Бремен, чтобы стать музыкантами.",
+   "en": "A donkey, a dog, a cat and a rooster set off for Bremen to become musicians."
+  },
+  "words": 1199,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Bremer_Stadtmusikanten_(1857)"
+  }
+ },
+ {
+  "id": "grimm-froschkoenig",
+  "title": "Der Froschkönig",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Принцеса губить золоту кульку, а жаба обіцяє допомогти — за одну умову.",
+   "ru": "Принцесса роняет золотой мяч, а лягушка обещает помочь — при одном условии.",
+   "en": "A princess drops her golden ball, and a frog offers help — on one condition."
+  },
+  "words": 1304,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_Froschk%C3%B6nig_oder_der_eiserne_Heinrich_(1857)"
+  }
+ },
+ {
+  "id": "grimm-sterntaler",
+  "title": "Die Sterntaler",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "A2",
+  "premium": false,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Бідна дівчинка віддає все, що має, — і зорі падають з неба золотими монетами.",
+   "ru": "Бедная девочка отдаёт всё, что у неё есть, — и звёзды падают с неба золотыми монетами.",
+   "en": "A poor girl gives away everything she has — and the stars fall as golden coins."
+  },
+  "words": 307,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Sternthaler_(1857)"
+  }
+ },
+ {
+  "id": "grimm-sneewittchen",
+  "title": "Schneewittchen",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "B1",
+  "premium": true,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Білосніжка, сім гномів і чарівне дзеркальце. Довша казка з багатою мовою.",
+   "ru": "Белоснежка, семь гномов и волшебное зеркальце. Более длинная сказка с богатым языком.",
+   "en": "Snow White, the seven dwarfs and the magic mirror. A longer tale with rich language."
+  },
+  "words": 2847,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Sneewittchen_(1857)"
+  }
+ },
+ {
+  "id": "grimm-rumpelstilzchen",
+  "title": "Rumpelstilzchen",
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863",
+  "year": "1857",
+  "translator": null,
+  "level": "B1",
+  "premium": true,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Чоловічок, що пряде солому на золото, і його таємне ім’я.",
+   "ru": "Человечек, который прядёт солому в золото, и его тайное имя.",
+   "en": "A little man who spins straw into gold — and his secret name."
+  },
+  "words": 1011,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Rumpelstilzchen_(1857)"
+  }
+ },
+ {
+  "id": "busch-max-moritz",
+  "title": "Max und Moritz",
+  "author": "Wilhelm Busch",
+  "authorYears": "1832–1908",
+  "year": "1865",
+  "translator": null,
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "kids",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Сім витівок двох шибеників у віршах — класика німецького дитинства.",
+   "ru": "Семь проделок двух сорванцов в стихах — классика немецкого детства.",
+   "en": "Seven pranks of two rascals in verse — a classic of German childhood."
+  },
+  "words": 2209,
+  "chapters": 9,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Max_und_Moritz"
+  }
+ },
+ {
+  "id": "hoffmann-struwwelpeter",
+  "title": "Der Struwwelpeter",
+  "author": "Heinrich Hoffmann",
+  "authorYears": "1809–1894",
+  "year": "1845",
+  "translator": null,
+  "level": "B1",
+  "premium": true,
+  "collections": [
+   "kids",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Кумедні й трохи страшні віршовані історії про неслухняних дітей (1845).",
+   "ru": "Смешные и немного страшные стихотворные истории о непослушных детях (1845).",
+   "en": "Funny and slightly scary verse stories about naughty children (1845)."
+  },
+  "words": 2063,
+  "chapters": 12,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_Struwwelpeter"
+  }
+ },
+ {
+  "id": "hauff-zwerg-nase",
+  "title": "Der Zwerg Nase",
+  "author": "Wilhelm Hauff",
+  "authorYears": "1802–1827",
+  "year": "1827",
+  "translator": null,
+  "level": "B2",
+  "premium": true,
+  "collections": [
+   "kids",
+   "school-ua"
+  ],
+  "description": {
+   "uk": "«Карлик Ніс»: хлопчика зачаровує відьма, і він стає кухарем у герцога. Казка Гауфа.",
+   "ru": "«Карлик Нос»: мальчика заколдовывает ведьма, и он становится поваром у герцога. Сказка Гауфа.",
+   "en": "A boy bewitched by a fairy becomes the duke’s cook. Hauff’s famous tale."
+  },
+  "words": 10436,
+  "chapters": 3,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_Zwerg_Nase"
+  }
+ },
+ {
+  "id": "hauff-kalif-storch",
+  "title": "Kalif Storch",
+  "author": "Wilhelm Hauff",
+  "authorYears": "1802–1827",
+  "year": "1826",
+  "translator": null,
+  "level": "B2",
+  "premium": true,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "Халіф перетворюється на лелеку й забуває чарівне слово.",
+   "ru": "Халиф превращается в аиста и забывает волшебное слово.",
+   "en": "A caliph turns into a stork and forgets the magic word."
+  },
+  "words": 3583,
+  "chapters": 5,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Geschichte_von_Kalif_Storch"
+  }
+ },
+ {
+  "id": "kafka-gesetz",
+  "title": "Vor dem Gesetz",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1915",
+  "translator": null,
+  "level": "B2",
+  "premium": false,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Притча Кафки про чоловіка, який усе життя чекає біля брами Закону. Дві сторінки, що їх аналізують у кожній школі.",
+   "ru": "Притча Кафки о человеке, который всю жизнь ждёт у врат Закона.",
+   "en": "Kafka’s parable of a man who waits all his life at the gate of the Law."
+  },
+  "words": 586,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Vor_dem_Gesetz"
+  }
+ },
+ {
+  "id": "kafka-verwandlung",
+  "title": "Die Verwandlung",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1915",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "school-ua",
+   "world"
+  ],
+  "description": {
+   "uk": "«Перевтілення»: Грегор Замза прокидається комахою. Повний текст першого видання 1915 року.",
+   "ru": "«Превращение»: Грегор Замза просыпается насекомым. Полный текст первого издания 1915 года.",
+   "en": "Gregor Samsa wakes up as an insect. Complete text of the 1915 first edition."
+  },
+  "words": 19148,
+  "chapters": 6,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Verwandlung_(Franz_Kafka)"
+  }
+ },
+ {
+  "id": "kafka-landarzt",
+  "title": "Ein Landarzt",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1918",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Сільський лікар серед ночі їде до хворого — моторошна й сновидна новела.",
+   "ru": "Сельский врач ночью едет к больному — жуткая, сноподобная новелла.",
+   "en": "A country doctor’s nightmarish night journey to a patient."
+  },
+  "words": 2132,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Ein_Landarzt"
+  }
+ },
+ {
+  "id": "goethe-erlkoenig",
+  "title": "Erlkönig",
+  "author": "Johann Wolfgang von Goethe",
+  "authorYears": "1749–1832",
+  "year": "1782",
+  "translator": null,
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "school-de",
+   "poetry"
+  ],
+  "description": {
+   "uk": "«Лісовий цар»: батько скаче вночі з хворим сином. Найвідоміша балада Ґете.",
+   "ru": "«Лесной царь»: отец скачет ночью с больным сыном. Самая известная баллада Гёте.",
+   "en": "A father rides through the night with his sick son. Goethe’s most famous ballad."
+  },
+  "words": 228,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Erlk%C3%B6nig"
+  }
+ },
+ {
+  "id": "schiller-buergschaft",
+  "title": "Die Bürgschaft",
+  "author": "Friedrich Schiller",
+  "authorYears": "1759–1805",
+  "year": "1798",
+  "translator": null,
+  "level": "B2",
+  "premium": false,
+  "collections": [
+   "school-de",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Балада про дружбу й вірність: друг ручається життям за засудженого.",
+   "ru": "Баллада о дружбе и верности: друг ручается жизнью за осуждённого.",
+   "en": "A ballad of friendship: a man stakes his life for a condemned friend."
+  },
+  "words": 880,
+  "chapters": 2,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_B%C3%BCrgschaft"
+  }
+ },
+ {
+  "id": "storm-schimmelreiter",
+  "title": "Der Schimmelreiter",
+  "author": "Theodor Storm",
+  "authorYears": "1817–1888",
+  "year": "1888",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "«Вершник на білому коні»: доглядач дамб Гауке Гайєн бореться з морем і забобонами.",
+   "ru": "«Всадник на белом коне»: смотритель дамб Хауке Хайен борется с морем и суевериями.",
+   "en": "Dike-reeve Hauke Haien battles the sea and superstition."
+  },
+  "words": 38675,
+  "chapters": 13,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_Schimmelreiter"
+  }
+ },
+ {
+  "id": "eichendorff-taugenichts",
+  "title": "Aus dem Leben eines Taugenichts",
+  "author": "Joseph von Eichendorff",
+  "authorYears": "1788–1857",
+  "year": "1826",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Веселий нероба вирушає у світ зі скрипкою. Класика німецького романтизму.",
+   "ru": "Весёлый бездельник отправляется в мир со скрипкой. Классика немецкого романтизма.",
+   "en": "A cheerful good-for-nothing sets out into the world with his violin."
+  },
+  "words": 31420,
+  "chapters": 10,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Aus_dem_Leben_eines_Taugenichts"
+  }
+ },
+ {
+  "id": "droste-judenbuche",
+  "title": "Die Judenbuche",
+  "author": "Annette von Droste-Hülshoff",
+  "authorYears": "1797–1848",
+  "year": "1842",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Детективна новела про вбивство в лісовому селі. Обов’язкове шкільне читання в Німеччині.",
+   "ru": "Детективная новелла об убийстве в лесной деревне. Обязательное школьное чтение в Германии.",
+   "en": "A crime novella set in a forest village — a German school classic."
+  },
+  "words": 16308,
+  "chapters": 5,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Judenbuche"
+  }
+ },
+ {
+  "id": "keller-kleider",
+  "title": "Kleider machen Leute",
+  "author": "Gottfried Keller",
+  "authorYears": "1819–1890",
+  "year": "1874",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Бідного кравця через гарне пальто приймають за графа. Іронічна новела.",
+   "ru": "Бедного портного из-за красивого пальто принимают за графа. Ироничная новелла.",
+   "en": "A poor tailor in a fine coat is mistaken for a count."
+  },
+  "words": 14372,
+  "chapters": 5,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Kleider_machen_Leute"
+  }
+ },
+ {
+  "id": "hoffmann-sandmann",
+  "title": "Der Sandmann",
+  "author": "E. T. A. Hoffmann",
+  "authorYears": "1776–1822",
+  "year": "1816",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Моторошна історія Натанаеля, піщаної людини й механічної ляльки Олімпії.",
+   "ru": "Жуткая история Натанаэля, Песочного человека и механической куклы Олимпии.",
+   "en": "Nathanael, the Sandman and the mechanical doll Olimpia."
+  },
+  "words": 12207,
+  "chapters": 5,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_Sandmann"
+  }
+ },
+ {
+  "id": "hoffmann-goldner-topf",
+  "title": "Der goldne Topf",
+  "author": "E. T. A. Hoffmann",
+  "authorYears": "1776–1822",
+  "year": "1814",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "school-ua"
+  ],
+  "description": {
+   "uk": "«Золотий горнець»: студент Ансельм закохується в золотисто-зелену змійку. Романтична казка.",
+   "ru": "«Золотой горшок»: студент Ансельм влюбляется в золотисто-зелёную змейку.",
+   "en": "Student Anselmus falls in love with a golden-green snake. A Romantic fairy tale."
+  },
+  "words": 29255,
+  "chapters": 7,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Der_goldne_Topf"
+  }
+ },
+ {
+  "id": "heine-weber",
+  "title": "Die schlesischen Weber",
+  "author": "Heinrich Heine",
+  "authorYears": "1797–1856",
+  "year": "1844",
+  "translator": null,
+  "level": "B2",
+  "premium": false,
+  "collections": [
+   "school-de",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Гнівний вірш Гейне про повстання ткачів 1844 року.",
+   "ru": "Гневное стихотворение Гейне о восстании ткачей 1844 года.",
+   "en": "Heine’s angry poem about the 1844 weavers’ uprising."
+  },
+  "words": 152,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_schlesischen_Weber"
+  }
+ },
+ {
+  "id": "goethe-faust",
+  "title": "Faust. Der Tragödie erster Teil",
+  "author": "Johann Wolfgang von Goethe",
+  "authorYears": "1749–1832",
+  "year": "1808",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-ua",
+   "school-de",
+   "world"
+  ],
+  "description": {
+   "uk": "Доктор Фауст укладає угоду з Мефістофелем. Головна книжка німецької літератури.",
+   "ru": "Доктор Фауст заключает договор с Мефистофелем. Главная книга немецкой литературы.",
+   "en": "Doctor Faust makes a pact with Mephistopheles."
+  },
+  "words": 31068,
+  "chapters": 32,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Faust_-_Der_Trag%C3%B6die_erster_Teil"
+  }
+ },
+ {
+  "id": "heine-loreley",
+  "title": "Die Loreley",
+  "author": "Heinrich Heine",
+  "authorYears": "1797–1856",
+  "year": "1824",
+  "translator": null,
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "school-ua",
+   "poetry"
+  ],
+  "description": {
+   "uk": "«Не знаю, що стало зо мною…» — вірш Гейне про чарівницю на скелі над Рейном.",
+   "ru": "«Не знаю, что значит такое…» — стихотворение Гейне о чаровнице над Рейном.",
+   "en": "Heine’s poem about the siren on the rock above the Rhine."
+  },
+  "words": 137,
+  "chapters": 1,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Ich_wei%C3%9F_nicht%2C_was_soll_es_bedeuten"
+  }
+ },
+ {
+  "id": "tschechow-erzaehlungen",
+  "title": "Erzählungen",
+  "author": "Anton Tschechow",
+  "authorYears": "1860–1904",
+  "year": "1920",
+  "translator": "Wladimir Czumikow",
+  "level": "B2",
+  "premium": true,
+  "collections": [
+   "slavic",
+   "world"
+  ],
+  "description": {
+   "uk": "Оповідання Чехова в старих німецьких перекладах: діти, кохання, лікарі й маленькі трагедії.",
+   "ru": "Рассказы Чехова в старых немецких переводах: дети, любовь, врачи и маленькие трагедии.",
+   "en": "Chekhov’s short stories in early German translations."
+  },
+  "words": 24033,
+  "chapters": 8,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Die_Kinder"
+  }
+ },
+ {
+  "id": "schewtschenko-gedichte",
+  "title": "Gedichte",
+  "author": "Taras Schewtschenko",
+  "authorYears": "1814–1861",
+  "year": "2008",
+  "translator": "Iwan Franko",
+  "level": "B2",
+  "premium": false,
+  "collections": [
+   "ukraine",
+   "school-ua",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Вірші Шевченка в німецьких перекладах кінця XIX — початку XX ст.: «Заповіт», «Кавказ», «Перебендя», «Марія» та інші.",
+   "ru": "Стихи Шевченко в немецких переводах: «Завещание», «Кавказ», «Перебендя», «Мария» и другие.",
+   "en": "Shevchenko’s poems in early German translations: “Testament”, “Caucasus” and more."
+  },
+  "words": 4478,
+  "chapters": 12,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Das_Verm%C3%A4chtnis_(Schewtschenko)"
+  }
+ },
+ {
+  "id": "franko-schewtschenko",
+  "title": "Taras Schewtschenko",
+  "author": "Iwan Franko",
+  "authorYears": "1856–1916",
+  "year": null,
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "ukraine"
+  ],
+  "description": {
+   "uk": "Нарис Івана Франка про Шевченка, написаний німецькою самим Франком.",
+   "ru": "Очерк Ивана Франко о Шевченко, написанный по-немецки самим Франко.",
+   "en": "Ivan Franko’s essay on Shevchenko, written by Franko in German."
+  },
+  "words": 365,
+  "chapters": 3,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Taras_Schewtschenko"
+  }
+ },
+ {
+  "id": "jensen-schewtschenko",
+  "title": "Taras Schewtschenko. Ein ukrainisches Dichterleben",
+  "author": "Alfred Jensen",
+  "authorYears": "1859–1921",
+  "year": "1916",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "ukraine"
+  ],
+  "description": {
+   "uk": "Біографія Шевченка з перекладами його віршів (1916).",
+   "ru": "Биография Шевченко с переводами его стихов (1916).",
+   "en": "A biography of Shevchenko with translations of his poems (1916)."
+  },
+  "words": 40523,
+  "chapters": 18,
+  "source": {
+   "name": "Wikisource",
+   "url": "https://de.wikisource.org/wiki/Taras_Schewtschenko._Ein_ukrainisches_Dichterleben"
+  }
+ }
+]

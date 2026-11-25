@@ -1,113 +1,118 @@
-// Переводчик с несколькими провайдерами:
-//  1) Google Gemini — точный перевод с учётом контекста (нужен API-ключ пользователя);
-//  2) MyMemory — бесплатный онлайн-перевод без ключа (лимит ~5000 символов/день);
-//  3) встроенный мини-словарь — работает офлайн для частых слов.
-// Результаты кешируются в localStorage.
+// Переклад: Google Translate.
+//
+// Порядок, у якому пробуємо джерела:
+//  1) готовий словник книжок (app/dict/<мова>.json): миттєво й офлайн, якщо його зібрали скриптом
+//     `npm run dict` (tools/build-dictionary.js);
+//  2) кеш на пристрої: кожне слово перекладається лише один раз;
+//  3) Google Translate:
+//     • якщо в config.js вказано TRANSLATE_PROXY_URL — офіційний Google Cloud Translation API
+//       через ваш сервер (ключ лежить на сервері, а не в застосунку; так рекомендовано для релізу);
+//     • інакше — безкоштовний публічний endpoint Google (translate.googleapis.com, client=gtx).
+//       Запит іде з телефону користувача, тож у кожного свій ліміт. Endpoint неофіційний:
+//       Google може обмежити його будь-коли, тому для релізу варто підключити проксі;
+//  4) MyMemory, запасний безкоштовний сервіс;
+//  5) вбудований міні-словник (офлайн).
 import * as store from './store.js';
 import { MINI_DICT } from '../data/mini-dict.js';
-import { langName } from './i18n.js';
+import { TRANSLATE_PROXY_URL } from './config.js';
 
-const CACHE_KEY = 'lesefreund:trcache';
+const CACHE_KEY = 'lesefreund:trcache2';
 let cache = {};
-try {
-  cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
-} catch {
-  cache = {};
+try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { cache = {}; }
+let saveTimer;
+function remember(k, v) {
+  cache[k] = v;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const keys = Object.keys(cache);
+    if (keys.length > 5000) for (const key of keys.slice(0, 1500)) delete cache[key];
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
+  }, 300);
 }
-function saveCache() {
-  const keys = Object.keys(cache);
-  if (keys.length > 3000) for (const k of keys.slice(0, 1000)) delete cache[k];
-  try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
-  } catch {}
+
+const bookDicts = {};
+async function bookDict(lang) {
+  if (!(lang in bookDicts)) {
+    bookDicts[lang] = fetch(`dict/${lang}.json`).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+  }
+  return bookDicts[lang];
 }
 
 /**
- * @param {string} text  немецкий текст (слово или фраза)
- * @param {object} opts  { context?: string — предложение, в котором стоит слово }
- * @returns {Promise<{text: string, note?: string, provider: string}>}
+ * @param {string} text  німецький текст (слово або фраза)
+ * @returns {Promise<{text: string, alts?: {pos: string, terms: string[]}[], provider: string}>}
  */
-export async function translate(text, { context = '' } = {}) {
+export async function translate(text) {
+  text = text.trim();
   const target = store.get('targetLang') || 'en';
-  const mode = store.get('translator');
-  const key = store.get('geminiKey');
-  const isWord = !/\s/.test(text.trim());
-  const cacheKey = `${target}|${mode}|${text}|${isWord ? context : ''}`;
-  if (cache[cacheKey]) return cache[cacheKey];
+  const isWord = !/\s/.test(text);
+  const key = `${target}|${text}`;
+  if (cache[key]) return cache[key];
 
-  const chain = [];
-  if (mode === 'gemini' || (mode === 'auto' && key)) chain.push(gemini);
-  if (mode === 'free' || mode === 'auto' || mode === 'gemini') chain.push(myMemory);
-  chain.push(offline);
+  if (isWord) {
+    const d = await bookDict(target);
+    const hit = d[text] || d[text.toLowerCase()];
+    if (hit) return { text: hit, provider: 'dictionary' };
+  }
 
+  const chain = TRANSLATE_PROXY_URL ? [googleProxy, googleFree, myMemory] : [googleFree, myMemory];
   let lastErr;
-  for (const provider of chain) {
+  for (const fn of chain) {
     try {
-      const res = await provider(text, target, context, isWord);
-      if (res && res.text) {
-        if (res.provider !== 'offline') {
-          cache[cacheKey] = res;
-          saveCache();
-        }
-        return res;
-      }
+      const res = await fn(text, target, isWord);
+      if (res?.text) { remember(key, res); return res; }
     } catch (e) {
       lastErr = e;
-      console.warn('[translate]', provider.name, e);
+      console.warn('[translate]', fn.name, e.message);
     }
   }
+  const off = isWord && MINI_DICT[text.toLowerCase()];
+  if (off) return { text: off[target] || off.en, provider: 'offline' };
   throw lastErr || new Error('no translation');
 }
 
-async function gemini(text, target, context, isWord) {
-  const key = store.get('geminiKey');
-  if (!key) throw new Error('no gemini key');
-  const model = store.get('geminiModel') || 'gemini-2.5-flash';
-  const lang = langName(target);
-  const prompt = isWord
-    ? `You are a German teacher. Translate the German word "${text}" into ${lang}, as it is used in this sentence: "${context}".
-Reply ONLY with JSON: {"translation": "...", "note": "..."} where "note" (in ${lang}) gives the base form (infinitive / nominative with article der/die/das), part of speech and, if useful, a very short grammar hint. Keep note under 20 words.`
-    : `Translate this German text into ${lang}. Keep the meaning, style and tone. Reply ONLY with JSON: {"translation": "..."}.
-Text: """${text}"""`;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
-      }),
-    },
-  );
-  if (!res.ok) throw new Error(`gemini ${res.status}`);
+function withTimeout(ms = 8000) {
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+
+async function googleFree(text, target, isWord) {
+  const p = new URLSearchParams({ client: 'gtx', sl: 'de', tl: target, dj: '1', q: text });
+  p.append('dt', 't');
+  if (isWord) p.append('dt', 'bd'); // словникові варіанти + частина мови
+  const res = await fetch('https://translate.googleapis.com/translate_a/single?' + p, { signal: withTimeout() });
+  if (!res.ok) throw new Error('google ' + res.status);
   const data = await res.json();
-  const raw = data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
-  const json = JSON.parse(raw.replace(/^```(json)?|```$/g, '').trim());
-  return { text: String(json.translation || '').trim(), note: json.note ? String(json.note) : '', provider: 'gemini' };
+  const out = (data.sentences || []).map((s) => s.trans || '').join('').trim();
+  const alts = (data.dict || []).map((d) => ({ pos: d.pos, terms: (d.terms || []).slice(0, 5) }));
+  return { text: out, alts, provider: 'google' };
+}
+
+async function googleProxy(text, target) {
+  const res = await fetch(TRANSLATE_PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ q: text, source: 'de', target }),
+    signal: withTimeout(),
+  });
+  if (!res.ok) throw new Error('proxy ' + res.status);
+  const data = await res.json();
+  return { text: decode(data.translation || data?.data?.translations?.[0]?.translatedText || ''), provider: 'google' };
 }
 
 async function myMemory(text, target) {
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=de|${target}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`mymemory ${res.status}`);
+  const res = await fetch(
+    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=de|${target}`,
+    { signal: withTimeout() },
+  );
   const data = await res.json();
   const out = data?.responseData?.translatedText;
-  if (!out || data.responseStatus !== 200 || /MYMEMORY WARNING|QUERY LENGTH LIMIT/i.test(out)) {
-    throw new Error('mymemory: ' + (data?.responseDetails || 'empty'));
-  }
-  return { text: decodeEntities(out), provider: 'mymemory' };
+  if (!out || data.responseStatus !== 200 || /MYMEMORY WARNING/i.test(out)) throw new Error('mymemory');
+  return { text: decode(out), provider: 'mymemory' };
 }
 
-async function offline(text, target, _context, isWord) {
-  if (!isWord) return null;
-  const entry = MINI_DICT[text.toLowerCase()];
-  if (!entry) return null;
-  const tr = entry[target] || entry.en;
-  return tr ? { text: tr, provider: 'offline' } : null;
-}
-
-function decodeEntities(s) {
+function decode(s) {
   const el = document.createElement('textarea');
   el.innerHTML = s;
   return el.value;

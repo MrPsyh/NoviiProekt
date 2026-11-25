@@ -1,24 +1,31 @@
-// Простое хранилище поверх localStorage. Всё лежит под одним ключом.
-const KEY = 'lesefreund:v1';
+// Сховище поверх localStorage (усе під одним ключем). У нативному застосунку (Capacitor)
+// localStorage WebView зберігається між запусками.
+const KEY = 'lesefreund:v2';
 
 const DEFAULTS = {
   onboarded: false,
-  targetLang: null, // язык перевода, выбирается при первом запуске
+  targetLang: null,
   uiLang: null,
   fontSize: 19,
-  theme: 'auto',
-  translator: 'auto', // auto | free | gemini | offline
-  geminiKey: '',
-  geminiModel: 'gemini-2.5-flash',
-  premiumUntil: 0, // timestamp (ms); Infinity не сериализуется, поэтому -1 = навсегда
+  font: 'serif',
+  theme: 'light', // light | sepia | grey | black
+  speakOnTap: false,
+  premiumUntil: 0, // мс; -1 = назавжди
   premiumSource: null,
-  redeemed: [], // id использованных промокодов
-  vocab: [], // { de, tr, lang, context, bookId, at }
-  progress: {}, // bookId -> { scroll: 0..1 }
+  redeemed: [],
+  vocab: [], // { id, de, tr, alts, context, bookId, at, box, due, seen, ok }
+  progress: {}, // bookId -> { ch, scroll, done, at }
+  studyDays: [], // 'YYYY-MM-DD'
+  sessions: 0,
+  achievements: [],
+  xp: 0,
+  xpToday: { date: null, xp: 0 },
+  dailyGoal: 50, // XP на день
+  perfect: 0, // тренувань без помилок
+  spoken: 0, // правильно вимовлених фраз
 };
 
 let state = load();
-
 function load() {
   try {
     const raw = localStorage.getItem(KEY);
@@ -27,31 +34,31 @@ function load() {
     return { ...DEFAULTS };
   }
 }
-
 function persist() {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state));
-  } catch {
-    /* приватный режим / переполнено — работаем в памяти */
-  }
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
 }
 
 export const get = (k) => state[k];
-export function set(k, v) {
-  state[k] = v;
-  persist();
-}
-export function update(k, fn) {
-  state[k] = fn(state[k]);
-  persist();
-}
-export function resetAll() {
-  state = { ...DEFAULTS };
-  persist();
-}
+export function set(k, v) { state[k] = v; persist(); }
+export function update(k, fn) { state[k] = fn(state[k]); persist(); }
+export function resetAll() { state = structuredClone(DEFAULTS); persist(); }
 
 export const FOREVER = -1;
 export function isPremium() {
   const u = state.premiumUntil;
   return u === FOREVER || u > Date.now();
+}
+
+export const today = () => new Date().toLocaleDateString('sv-SE'); // YYYY-MM-DD у місцевому часі
+export function markStudyDay() {
+  const d = today();
+  if (!state.studyDays.includes(d)) update('studyDays', (a) => [...a.slice(-400), d]);
+}
+export function streak() {
+  const days = new Set(state.studyDays);
+  let n = 0;
+  const d = new Date();
+  if (!days.has(today())) d.setDate(d.getDate() - 1); // серія не згорає, поки не скінчився сьогоднішній день
+  while (days.has(d.toLocaleDateString('sv-SE'))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
 }

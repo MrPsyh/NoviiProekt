@@ -1,0 +1,13 @@
+{
+  "appId": "app.lesefreund.reader",
+  "appName": "Lesefreund",
+  "webDir": "app",
+  "backgroundColor": "#fbf8f3",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true },
+    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#1d3557", "showSpinner": false },
+    "StatusBar": { "overlaysWebView": false }
+  }
+}
