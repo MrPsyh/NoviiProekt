@@ -23,6 +23,11 @@ const DEFAULTS = {
   dailyGoal: 50, // XP на день
   perfect: 0, // тренувань без помилок
   spoken: 0, // правильно вимовлених фраз
+  ratings: {}, // bookId -> 1..5
+  unlocked: [], // книжки, відкриті переглядом реклами
+  imported: [], // книжки, які користувач додав сам
+  adCredits: 0,
+  readMode: 'pages',
 };
 
 let state = load();

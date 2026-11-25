@@ -86,6 +86,8 @@ function buildPack() {
     codes: codes
       .filter((c) => !c.disabled)
       .map((c) => ({ id: c.id, h: hashCode(c.code), minutes: c.minutes, validUntil: c.validUntil || null })),
+    // відкликані коди: застосунок знімає Premium, виданий цими кодами
+    revoked: codes.filter((c) => c.disabled).map((c) => c.id),
   };
 }
 function packIsStale() {

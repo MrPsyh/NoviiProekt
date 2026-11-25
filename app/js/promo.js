@@ -47,6 +47,19 @@ export async function redeem(code) {
   }
   store.set('premiumUntil', until);
   store.set('premiumSource', 'promo');
+  store.set('premiumCodeId', entry.id);
   store.update('redeemed', (r) => [...r, entry.id]);
   return { ok: true, until };
+}
+
+// Якщо власник відкликав код в адмінці — знімаємо Premium, виданий цим кодом.
+export async function checkRevoked() {
+  const id = store.get('premiumCodeId');
+  if (!id || store.get('premiumSource') !== 'promo') return;
+  const pack = await loadPack();
+  if ((pack.revoked || []).includes(id)) {
+    store.set('premiumUntil', 0);
+    store.set('premiumSource', null);
+    store.set('premiumCodeId', null);
+  }
 }

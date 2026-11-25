@@ -1,0 +1,1 @@
+Lexicon data derived from Wiktionary (https://en.wiktionary.org), via kaikki.org. License: CC BY-SA 4.0.

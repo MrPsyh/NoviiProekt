@@ -104,6 +104,17 @@ function render() {
   </div>
 
   <div class="card">
+    <h2>📊 Статистика и доходы</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <a href="https://play.google.com/console" target="_blank"><button class="ghost" style="width:100%">Google Play Console<br><small class="muted">установки, удаления, оценки, подписки</small></button></a>
+      <a href="https://admob.google.com" target="_blank"><button class="ghost" style="width:100%">AdMob<br><small class="muted">доход от рекламы по дням</small></button></a>
+      <a href="https://appstoreconnect.apple.com" target="_blank"><button class="ghost" style="width:100%">App Store Connect<br><small class="muted">iPhone: загрузки и продажи</small></button></a>
+      <a href="https://console.firebase.google.com" target="_blank"><button class="ghost" style="width:100%">Firebase Analytics<br><small class="muted">кто читает сейчас, популярные книги</small></button></a>
+    </div>
+    <p class="muted">Эти цифры собирают Google и Apple. Как подключить «сколько людей читает прямо сейчас» — в docs/MONETIZATION.md.</p>
+  </div>
+
+  <div class="card">
     <h2>Создать промокоды</h2>
     <div class="presets">
       <button data-p="1,hours">1 час</button><button data-p="1,days">1 день</button>
@@ -142,13 +153,13 @@ function render() {
         <td class="muted">${esc(c.note)}</td>
         <td class="actions"><div class="row">
           <button class="ghost small" data-copy="${esc(c.code)}">Копировать</button>
-          <button class="ghost small" data-toggle="${c.id}">${c.disabled ? 'Включить' : 'Отключить'}</button>
+          <button class="ghost small" data-toggle="${c.id}">${c.disabled ? 'Включить' : 'Отозвать'}</button>
           <button class="danger small" data-del="${c.id}">Удалить</button></div></td></tr>`;
     }).join('') || '<tr><td colspan="5" class="muted">Пока нет кодов</td></tr>'}
     </tbody></table>
   </div>
   <p class="muted">Как это работает: коды хранятся только здесь (admin/data/codes.json). В приложение уходят лишь их хеши (app/promo-pack.json),
-  поэтому из файлов приложения коды узнать нельзя. Отключённые коды не попадают в пак при следующей публикации.</p>`;
+  поэтому из файлов приложения коды узнать нельзя. Отозванные коды не активируются, а Premium, уже выданный ими, снимается у пользователей после публикации и обновления приложения.</p>`;
 
   $('#logout').onclick = async () => { await api('/api/logout', { method: 'POST' }); renderLogin(); };
   $('#publish').onclick = async () => {

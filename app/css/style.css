@@ -458,3 +458,85 @@ input:focus, select:focus { border-color: var(--accent); }
 #tabbar a .ti svg [fill='none'] { fill: none; }
 #tabbar a.on .ti { transform: translateY(-2px); }
 #tabbar .ti svg path[fill='none'] { stroke-width: 2.2; }
+
+/* ============ v0.5 ============ */
+/* швидкодія: без backdrop-filter (дуже повільний у WebView Android) */
+#tabbar, .reader-top { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+#tabbar { background: var(--surface); }
+.reader-top { background: var(--bg); }
+.shelf-row, .grid { content-visibility: auto; contain-intrinsic-size: 1px 260px; }
+
+/* сторінки як у книжці */
+body.paged-mode { overflow: hidden; height: 100dvh; overscroll-behavior: none; }
+body.paged-mode #view { padding-bottom: 0; }
+.pager { position: fixed; left: 50%; transform: translateX(-50%); width: min(100vw, 760px); top: calc(env(safe-area-inset-top) + 64px); bottom: calc(env(safe-area-inset-bottom) + 46px); overflow: hidden; touch-action: pan-y; }
+.reader-text.paged { height: 100%; padding: 6px 22px 0; margin: 0; column-fill: auto; will-change: transform; }
+.reader-text.paged p { break-inside: auto; orphans: 2; widows: 2; }
+.reader-text.paged h2 { margin-top: 6px; }
+.reader-text.paged .the-end { break-before: column; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; }
+.pager-foot { position: fixed; left: 50%; transform: translateX(-50%); width: min(100vw, 760px); bottom: 0; padding: 10px 22px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--muted); font-weight: 700; }
+.pf-bar { flex: 1; height: 3px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.pf-bar div { height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* картка слова зі словником */
+.tr-hw { min-width: 0; }
+.tr-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; font-size: 13px; color: var(--muted); }
+.pos { background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 11.5px; padding: 2px 8px; border-radius: 99px; text-transform: uppercase; letter-spacing: .04em; }
+.ipa { font-family: 'Charis SIL', 'Doulos SIL', 'Noto Sans', var(--sans); font-size: 15px; color: var(--text); }
+.cyr { font-style: italic; }
+.art { font-weight: 800; }
+.art-m { color: #2f6fdd; } .art-f { color: #e0435c; } .art-n { color: #1f9d6a; }
+.big-speak { width: 48px; height: 48px; font-size: 20px; border-radius: 16px; }
+.form-note { font-size: 13.5px; color: var(--muted); margin-bottom: 6px; }
+.form-note b { color: var(--text); font-family: var(--serif); }
+.gram { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; margin: 12px 0 4px; }
+.gram > div { background: var(--surface-2); border-radius: 12px; padding: 8px 10px; }
+.gram small { display: block; font-size: 10.5px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.gv { border: 0; background: none; padding: 0; font-family: var(--serif); font-size: 16px; font-weight: 700; color: var(--text); text-align: left; }
+.means { margin: 4px 0 0; padding-left: 20px; display: grid; gap: 3px; }
+.means small { color: var(--muted); font-size: 12px; }
+.lex-src { font-size: 10.5px; color: var(--muted); text-align: right; margin-top: 8px; }
+
+/* імітація реклами (лише веб) */
+.fake-ad { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.75); display: grid; place-items: center; padding: 24px; }
+.fa-box { background: var(--surface); border-radius: 24px; padding: 22px; text-align: center; max-width: 340px; width: 100%; }
+.fa-box small { color: var(--muted); font-weight: 800; letter-spacing: .1em; }
+.fa-owl { width: 130px; height: 130px; margin: 8px auto; }
+.fa-box p { color: var(--muted); }
+.ad-card { display: flex; align-items: center; gap: 12px; }
+.ad-card > div { flex: 1; }
+/* великий каталог */
+.search-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+.search-row .search { margin: 0; flex: 1; }
+.add-book { width: 48px; height: 48px; font-size: 24px; background: var(--accent); color: var(--accent-ink); text-decoration: none; flex: none; border-radius: 14px; }
+.lang-sel { width: auto; flex: none; }
+.cover.nocover { background: linear-gradient(160deg, #6b3a2a, #3b1f17); display: flex; flex-direction: column; justify-content: center; padding: 10px; text-align: center; }
+.cover.nocover::before { content: attr(data-title); color: #f3e3c3; font-family: var(--serif); font-weight: 700; font-size: 13px; line-height: 1.2; border-top: 1px solid #c9a96e; border-bottom: 1px solid #c9a96e; padding: 8px 0; }
+.cover.nocover::after { content: attr(data-author); color: #c9a96e; font-size: 10px; margin-top: 8px; text-transform: uppercase; letter-spacing: .08em; }
+.my-rate { position: absolute; left: 6px; top: 6px; font-style: normal; font-size: 11px; font-weight: 800; background: rgba(0,0,0,.6); color: #ffd166; padding: 2px 6px; border-radius: 8px; }
+.more { margin-top: 16px; }
+.import-cta { display: flex; align-items: center; gap: 14px; text-decoration: none; color: var(--text); margin-top: 20px; }
+.import-cta > span { width: 48px; height: 48px; border-radius: 14px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 26px; flex: none; }
+.import-cta > div { display: grid; } .import-cta small { color: var(--muted); }
+.ilist { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.ilist li { display: flex; gap: 12px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+.ilist img { width: 48px; height: 72px; object-fit: cover; border-radius: 6px; background: var(--surface-2); flex: none; }
+.ilist li > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.ilist b { font-size: 14.5px; }
+.ilist small { font-size: 12px; }
+.tag-prot { font-size: 11px; font-weight: 800; color: var(--err); border: 1px solid var(--err); border-radius: 8px; padding: 3px 7px; }
+.loading-book { text-align: center; padding: 25vh 20px 0; color: var(--muted); }
+.bd-cover-wrap { width: 110px; flex: none; }
+.bd-sub { font-size: 14px; color: var(--muted); margin: -2px 0 4px; }
+.stars { display: flex; align-items: center; gap: 4px; margin: 14px 0 4px; }
+.stars button { border: 0; background: none; font-size: 28px; line-height: 1; color: var(--line); padding: 0 2px; }
+.stars button.on { color: #ffb400; }
+.stars small { margin-left: 8px; color: var(--muted); font-weight: 700; }
+.ob-brand { width: 190px; height: 190px; margin: 0 auto 8px; border-radius: 42px; box-shadow: 0 14px 34px rgba(29,53,87,.18); animation: bob 3s ease-in-out infinite; }
+/* палітурка для книжок без справжньої обкладинки: тканина + золоте тиснення */
+.cover.nocover { background:
+  repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 2px, transparent 2px 5px),
+  repeating-linear-gradient(-45deg, rgba(0,0,0,.06) 0 2px, transparent 2px 5px),
+  linear-gradient(160deg, hsl(var(--h, 15) 42% 30%), hsl(var(--h, 15) 48% 16%)); }
+.cover.nocover::before { color: #f1dca7; border-color: #c9a96e; text-shadow: 0 1px 0 rgba(0,0,0,.5); box-shadow: 0 -6px 0 -5px #c9a96e, 0 6px 0 -5px #c9a96e; }
+.cover.nocover::after { color: #d9bf86; }

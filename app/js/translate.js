@@ -42,11 +42,12 @@ async function bookDict(lang) {
  * @param {string} text  німецький текст (слово або фраза)
  * @returns {Promise<{text: string, alts?: {pos: string, terms: string[]}[], provider: string}>}
  */
-export async function translate(text) {
+export async function translate(text, { from = 'de' } = {}) {
   text = text.trim();
   const target = store.get('targetLang') || 'en';
-  const isWord = !/\s/.test(text);
-  const key = `${target}|${text}`;
+  const isWord = !/\s/.test(text) && from === 'de';
+  const key = `${from}|${target}|${text}`;
+  if (from === target) return { text, provider: 'same' };
   if (cache[key]) return cache[key];
 
   if (isWord) {
@@ -59,7 +60,7 @@ export async function translate(text) {
   let lastErr;
   for (const fn of chain) {
     try {
-      const res = await fn(text, target, isWord);
+      const res = await fn(text, target, isWord, from);
       if (res?.text) { remember(key, res); return res; }
     } catch (e) {
       lastErr = e;
@@ -77,8 +78,8 @@ function withTimeout(ms = 8000) {
   return c.signal;
 }
 
-async function googleFree(text, target, isWord) {
-  const p = new URLSearchParams({ client: 'gtx', sl: 'de', tl: target, dj: '1', q: text });
+async function googleFree(text, target, isWord, from = 'de') {
+  const p = new URLSearchParams({ client: 'gtx', sl: from, tl: target, dj: '1', q: text });
   p.append('dt', 't');
   if (isWord) p.append('dt', 'bd'); // словникові варіанти + частина мови
   const res = await fetch('https://translate.googleapis.com/translate_a/single?' + p, { signal: withTimeout() });
@@ -89,11 +90,11 @@ async function googleFree(text, target, isWord) {
   return { text: out, alts, provider: 'google' };
 }
 
-async function googleProxy(text, target) {
+async function googleProxy(text, target, _w, from = 'de') {
   const res = await fetch(TRANSLATE_PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ q: text, source: 'de', target }),
+    body: JSON.stringify({ q: text, source: from, target }),
     signal: withTimeout(),
   });
   if (!res.ok) throw new Error('proxy ' + res.status);
@@ -101,9 +102,9 @@ async function googleProxy(text, target) {
   return { text: decode(data.translation || data?.data?.translations?.[0]?.translatedText || ''), provider: 'google' };
 }
 
-async function myMemory(text, target) {
+async function myMemory(text, target, _w, from = 'de') {
   const res = await fetch(
-    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=de|${target}`,
+    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${from}|${target}`,
     { signal: withTimeout() },
   );
   const data = await res.json();

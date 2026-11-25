@@ -7,7 +7,7 @@
   "ios": { "contentInset": "never" },
   "plugins": {
     "CapacitorHttp": { "enabled": true },
-    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#1d3557", "showSpinner": false },
+    "SplashScreen": { "launchShowDuration": 600, "backgroundColor": "#fdf5e8", "showSpinner": false },
     "StatusBar": { "overlaysWebView": false }
   }
 }

@@ -7,6 +7,9 @@ import { $, $$, esc, openSheet, closeSheet, speak, toast, haptic } from './ui.js
 import { applyTheme } from './theme.js';
 import { checkAchievements } from './achievements.js';
 import { addXP, XP } from './xp.js';
+import { showInterstitial } from './ads.js';
+import { ADS } from './config.js';
+import { lookup, headword, grammarLines, ipaToCyr, ARTICLE, POS_NAME } from './lexicon.js';
 
 const FREE_PASSAGE_WORDS = 40;
 const WORD_RE = /[\p{L}\p{M}][\p{L}\p{M}\p{N}'’-]*/gu;
@@ -29,40 +32,62 @@ export function renderText(text) {
 
 const cleanWord = (w) => w.replace(/^[-'’]+|[-'’]+$/g, '');
 
-// ---------- переклад слова ----------
+// ---------- переклад слова: словник Лесі + Google ----------
 export async function showWord(raw, context = '', bookId = null) {
   const word = cleanWord(raw);
   if (store.get('speakOnTap')) speak(word);
+  const lang = store.get('uiLang') || 'uk';
   openSheet(`
     <div class="tr-head">
-      <div><div class="tr-word">${esc(word)}</div><div class="tr-lang">Deutsch → ${esc(langName(store.get('targetLang')))}</div></div>
-      <button class="icon-btn" id="sp" aria-label="speak">🔊</button>
+      <div class="tr-hw"><div class="tr-word" id="hw">${esc(word)}</div><div class="tr-sub" id="sub">Deutsch → ${esc(langName(store.get('targetLang')))}</div></div>
+      <button class="icon-btn big-speak" id="sp" aria-label="speak">🔊</button>
     </div>
     <div class="tr-body" id="trb"><div class="skeleton"></div><div class="skeleton short"></div></div>
     <div class="sheet-actions">
       <button class="btn" id="save" disabled>＋ ${t('save')}</button>
       ${context ? `<button class="btn ghost" id="sent">${t('sentence')}</button>` : ''}
     </div>`, { className: 'word-sheet' });
-  $('#sp').onclick = () => speak(word);
   $('#sent') && ($('#sent').onclick = () => showPhrase(context.trim(), bookId));
-  let result;
-  try {
-    result = await translate(word);
-    const alts = (result.alts || []).filter((a) => a.terms?.length);
-    $('#trb').innerHTML = `<div class="tr-text">${esc(result.text)}</div>
-      ${alts.length ? `<div class="tr-alts"><div class="tr-label">${t('alts')}</div>${alts
-        .map((a) => `<div><i>${esc(a.pos)}</i> ${a.terms.map(esc).join(', ')}</div>`).join('')}</div>` : ''}
-      ${context ? `<blockquote class="tr-context">${highlight(context, word)}</blockquote>` : ''}`;
-  } catch {
-    $('#trb').innerHTML = `<div class="tr-error">${t('trError')}</div>`;
-    return;
+  // з великої літери на початку речення — ще не означає іменник
+  const atStart = context && context.trim().startsWith(word);
+  const [entries, tr] = await Promise.all([
+    lookup(word, { capitalized: atStart ? null : /^[A-ZÄÖÜ]/.test(word) }).catch(() => []),
+    translate(word).catch(() => null),
+  ]);
+  const e = entries[0];
+  const head = e ? headword(e) : word;
+  $('#sp').onclick = () => speak(e ? e.w : word);
+  if (e) {
+    $('#hw').innerHTML = `${e.p === 'noun' && ARTICLE[e.g] ? `<span class="art art-${e.g}">${ARTICLE[e.g]}</span> ` : ''}${esc(e.w)}`;
+    $('#sub').innerHTML = `<span class="pos">${esc(POS_NAME[lang]?.[e.p] || e.p)}</span>
+      ${e.ipa ? `<span class="ipa">${esc(e.ipa)}</span><span class="cyr">≈ ${esc(ipaToCyr(e.ipa, lang === 'ru' ? 'ru' : 'uk'))}</span>` : ''}`;
+  }
+  if (!tr && !e) { $('#trb').innerHTML = `<div class="tr-error">${t('trError')}</div>`; return; }
+  const grammar = e ? grammarLines(e) : [];
+  const alts = (tr?.alts || []).filter((a) => a.terms?.length);
+  $('#trb').innerHTML = `
+    ${e && e.w.toLowerCase() !== word.toLowerCase() ? `<div class="form-note">${t('inText')}: <b>${esc(word)}</b> → ${esc(head)}</div>` : ''}
+    ${tr ? `<div class="tr-text">${esc(tr.text)}</div>` : ''}
+    ${grammar.length ? `<div class="gram">${grammar.map(([k, v]) => `<div><small>${k}</small><button class="gv" data-say="${esc(v.replace(/^er\/sie\/es /, ''))}">${esc(v)}</button></div>`).join('')}</div>` : ''}
+    ${e?.en?.length ? `<div class="tr-alts"><div class="tr-label">${t('meanings')}</div><ol class="means" id="means">${e.en.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>` : ''}
+    ${!e && alts.length ? `<div class="tr-alts"><div class="tr-label">${t('alts')}</div>${alts.map((a) => `<div><i>${esc(a.pos)}</i> ${a.terms.map(esc).join(', ')}</div>`).join('')}</div>` : ''}
+    ${context ? `<blockquote class="tr-context">${highlight(context, word)}</blockquote>` : ''}
+    ${e ? '<div class="lex-src">Wiktionary · CC BY-SA</div>' : ''}`;
+  $('#trb').onclick = (ev) => { const b = ev.target.closest('[data-say]'); if (b) speak(b.dataset.say); };
+  // значення зі словника — перекладаємо на мову користувача
+  if (e?.en?.length && store.get('targetLang') !== 'en') {
+    translate(e.en.join('\n'), { from: 'en' }).then((r) => {
+      const items = r.text.split('\n');
+      const ol = $('#means');
+      if (ol && items.length === e.en.length) ol.innerHTML = items.map((x, i) => `<li>${esc(x)} <small>${esc(e.en[i])}</small></li>`).join('');
+    }).catch(() => {});
   }
   const btn = $('#save');
   if (!btn) return;
-  if (hasWord(word)) { btn.textContent = t('saved'); return; }
+  if (hasWord(head) || hasWord(word)) { btn.textContent = t('saved'); return; }
   btn.disabled = false;
   btn.onclick = () => {
-    addWord({ de: word, tr: result.text, alts: (result.alts || []).slice(0, 2), context: context.trim(), bookId });
+    addWord({ de: head, tr: tr?.text || e?.en?.[0] || '', alts: (tr?.alts || []).slice(0, 2), context: context.trim(), bookId, ipa: e?.ipa, form: word });
     haptic();
     addXP(XP.word);
     btn.textContent = t('saved');
@@ -194,9 +219,24 @@ export function selbarLabels() {
 
 // ---------- сам екран ----------
 let scrollHandler = null;
+let pagerCleanup = null;
+let pageTurns = 0; // для реклами кожні N сторінок
 export function teardownReader() {
   if (scrollHandler) removeEventListener('scroll', scrollHandler);
   scrollHandler = null;
+  pagerCleanup?.();
+  pagerCleanup = null;
+}
+
+function saveProgress(meta, ch, total, r) {
+  const prev = store.get('progress')[meta.id] || {};
+  const chDone = new Set(prev.chDone || []);
+  const finishedNow = r > 0.95 && !chDone.has(ch);
+  if (finishedNow) chDone.add(ch);
+  const done = prev.done || (ch === total - 1 && r > 0.95);
+  store.update('progress', (p) => ({ ...p, [meta.id]: { ch, scroll: r, done, chDone: [...chDone], at: Date.now(), pct: Math.max(prev.pct || 0, (ch + r) / total) } }));
+  if (finishedNow) addXP(XP.chapter + (done && !prev.done ? XP.bookDone : 0));
+  if (done) checkAchievements();
 }
 
 export function renderReader(view, meta, book, ch) {
@@ -205,6 +245,15 @@ export function renderReader(view, meta, book, ch) {
   ch = Math.min(Math.max(0, ch), total - 1);
   const chapter = book.chapters[ch];
   const prog = store.get('progress')[meta.id] || {};
+  const paged = store.get('readMode') !== 'scroll';
+  const isLast = ch === total - 1;
+  const endBlock = isLast
+    ? `<div class="the-end"><div class="end-sticker" data-sticker="party"></div>${t('theEnd')}
+        <p class="source-line">${esc(meta.author)} · ${esc(meta.title)}${meta.translator ? ` · ${t('translationBy')}: ${esc(meta.translator)}` : ''} · ${esc(meta.source?.name || '')}</p></div>`
+    : '';
+  const body = `${chapter.title ? `<h2>${esc(chapter.title)}</h2>` : ''}
+      ${chapter.paragraphs.map((p) => `<p class="${p.includes('\n') ? 'verse' : ''}">${renderText(p)}</p>`).join('')}`;
+  document.body.classList.toggle('paged-mode', paged);
   view.innerHTML = `
     <header class="reader-top">
       <button class="icon-btn" id="rb" aria-label="back">←</button>
@@ -212,79 +261,143 @@ export function renderReader(view, meta, book, ch) {
       <button class="icon-btn" id="disp" aria-label="display">Aa</button>
       ${total > 1 ? '<button class="icon-btn" id="toc" aria-label="contents">☰</button>' : ''}
     </header>
-    <div class="progress-line"><div id="pl"></div></div>
-    <article class="reader-text font-${store.get('font')}" data-book="${esc(meta.id)}" lang="de">
-      ${chapter.title ? `<h2>${esc(chapter.title)}</h2>` : ''}
-      ${chapter.paragraphs.map((p) => `<p class="${p.includes('\n') ? 'verse' : ''}">${renderText(p)}</p>`).join('')}
-    </article>
-    <nav class="chapter-nav">
-      ${ch > 0 ? `<a class="btn ghost" href="#/read/${meta.id}/${ch - 1}">${t('prevCh')}</a>` : '<span></span>'}
-      ${ch < total - 1 ? `<a class="btn" href="#/read/${meta.id}/${ch + 1}">${t('nextCh')}</a>`
-        : `<div class="the-end"><div class="end-sticker" data-sticker="party"></div>${t('theEnd')}</div>`}
-    </nav>
-    <p class="source-line">${esc(meta.source?.name || '')}${meta.translator ? ` · ${t('translationBy')}: ${esc(meta.translator)}` : ''}${meta.year ? ` · ${esc(meta.year)}` : ''}</p>`;
+    ${paged
+      ? `<div class="pager" id="pager"><article class="reader-text paged font-${store.get('font')}" id="art" data-book="${esc(meta.id)}" lang="de">${body}${endBlock}</article></div>
+         <footer class="pager-foot"><span id="pgn"></span><div class="pf-bar"><div id="pl"></div></div><span class="pf-ch">${ch + 1}/${total}</span></footer>`
+      : `<div class="progress-line"><div id="pl"></div></div>
+         <article class="reader-text font-${store.get('font')}" id="art" data-book="${esc(meta.id)}" lang="de">${body}</article>
+         <nav class="chapter-nav">
+           ${ch > 0 ? `<a class="btn ghost" href="#/read/${meta.id}/${ch - 1}">${t('prevCh')}</a>` : '<span></span>'}
+           ${ch < total - 1 ? `<a class="btn" href="#/read/${meta.id}/${ch + 1}">${t('nextCh')}</a>` : endBlock}
+         </nav>`}`;
 
   $('#rb').onclick = () => (location.hash = '#/library');
-  $('#disp').onclick = displaySheet;
+  $('#disp').onclick = () => displaySheet(() => {
+    if (!location.hash.startsWith(`#/read/${meta.id}/`)) return; // шторку закрив перехід на інший екран
+    teardownReader();
+    renderReader(view, meta, book, ch);
+  });
   $('#toc') && ($('#toc').onclick = () => {
     openSheet(`<h2>${t('contents')}</h2><ol class="toc">${book.chapters
       .map((c, i) => `<li class="${i === ch ? 'on' : ''}"><a href="#/read/${meta.id}/${i}">${esc(c.title || `${t('chapter')} ${i + 1}`)}</a></li>`)
       .join('')}</ol>`);
   });
 
-  $('.reader-text').addEventListener('click', (e) => {
-    const w = e.target.closest('.w');
-    if (!w) return;
-    const sel = getSelection();
-    if (sel && !sel.isCollapsed) return;
+  const art = $('#art');
+  const openWord = (w) => {
     $$('.w.active').forEach((x) => x.classList.remove('active'));
     w.classList.add('active');
     showWord(w.textContent, w.closest('.s')?.textContent.replace(/\s+/g, ' ').trim() || '', meta.id);
-  });
-
-  const isLast = ch === total - 1;
-  requestAnimationFrame(() => {
-    if (prog.ch === ch && prog.scroll) scrollTo(0, prog.scroll * (document.documentElement.scrollHeight - innerHeight));
-  });
-  let tmr;
-  scrollHandler = () => {
-    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
-    const r = Math.min(1, scrollY / max);
-    const pl = $('#pl');
-    if (pl) pl.style.width = ((ch + r) / total) * 100 + '%';
-    clearTimeout(tmr);
-    tmr = setTimeout(() => {
-      const prev = store.get('progress')[meta.id] || {};
-      const chDone = new Set(prev.chDone || []);
-      const finishedNow = r > 0.95 && !chDone.has(ch);
-      if (finishedNow) chDone.add(ch);
-      const done = prev.done || (isLast && r > 0.95);
-      store.update('progress', (p) => ({ ...p, [meta.id]: { ch, scroll: r, done, chDone: [...chDone], at: Date.now(), pct: Math.max(prev.pct || 0, (ch + r) / total) } }));
-      if (finishedNow) addXP(XP.chapter + (done && !prev.done ? XP.bookDone : 0));
-      if (done) checkAchievements();
-    }, 400);
   };
-  addEventListener('scroll', scrollHandler, { passive: true });
-  scrollHandler();
+
+  if (!paged) {
+    art.addEventListener('click', (e) => {
+      const w = e.target.closest('.w');
+      const sel = getSelection();
+      if (w && !(sel && !sel.isCollapsed)) openWord(w);
+    });
+    requestAnimationFrame(() => {
+      if (prog.ch === ch && prog.scroll) scrollTo(0, prog.scroll * (document.documentElement.scrollHeight - innerHeight));
+    });
+    let tmr;
+    scrollHandler = () => {
+      const r = Math.min(1, scrollY / Math.max(1, document.documentElement.scrollHeight - innerHeight));
+      $('#pl') && ($('#pl').style.width = ((ch + r) / total) * 100 + '%');
+      clearTimeout(tmr);
+      tmr = setTimeout(() => saveProgress(meta, ch, total, r), 400);
+    };
+    addEventListener('scroll', scrollHandler, { passive: true });
+    scrollHandler();
+    return;
+  }
+
+  // ---------- сторінки ----------
+  const pager = $('#pager');
+  let page = 0, pages = 1, W = 1;
+  const layout = (keepRatio) => {
+    const ratio = pages > 1 ? page / (pages - 1) : 0;
+    W = pager.clientWidth;
+    art.style.columnWidth = W - 44 + 'px';
+    art.style.columnGap = '44px';
+    pages = Math.max(1, Math.round(art.scrollWidth / W));
+    if (keepRatio) page = Math.round(ratio * (pages - 1));
+    go(page, false);
+  };
+  const go = (p, animate = true) => {
+    page = Math.max(0, Math.min(pages - 1, p));
+    art.style.transition = animate ? 'transform .28s cubic-bezier(.2,.8,.3,1)' : 'none';
+    art.style.transform = `translate3d(${-page * W}px,0,0)`;
+    $('#pgn').textContent = `${page + 1} / ${pages}`;
+    $('#pl').style.width = ((ch + (page + 1) / pages) / total) * 100 + '%';
+    saveProgress(meta, ch, total, pages > 1 ? page / (pages - 1) : 1);
+  };
+  const next = async () => {
+    if (page < pages - 1) {
+      go(page + 1);
+      pageTurns++;
+      if (!store.isPremium() && pageTurns % ADS.pagesPerAd === 0) setTimeout(() => showInterstitial(), 320);
+    } else if (ch < total - 1) location.hash = `#/read/${meta.id}/${ch + 1}`;
+  };
+  const prev = () => {
+    if (page > 0) go(page - 1);
+    else if (ch > 0) { sessionStorage.setItem('lf:lastPage', '1'); location.hash = `#/read/${meta.id}/${ch - 1}`; }
+  };
+
+  let x0 = null, y0 = 0, t0 = 0, moved = false;
+  pager.addEventListener('pointerdown', (e) => { x0 = e.clientX; y0 = e.clientY; t0 = Date.now(); moved = false; });
+  pager.addEventListener('pointermove', (e) => {
+    if (x0 == null) return;
+    const dx = e.clientX - x0;
+    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(e.clientY - y0)) {
+      moved = true;
+      art.style.transition = 'none';
+      art.style.transform = `translate3d(${-page * W + dx * 0.9}px,0,0)`;
+    }
+  });
+  pager.addEventListener('pointerup', (e) => {
+    if (x0 == null) return;
+    const dx = e.clientX - x0;
+    x0 = null;
+    const sel = getSelection();
+    if (sel && !sel.isCollapsed) return go(page);
+    if (moved && Math.abs(dx) > 50) return dx < 0 ? next() : prev();
+    if (moved) return go(page);
+    if (Date.now() - t0 > 450) return; // довге натискання — це виділення фрази
+    const w = e.target.closest('.w');
+    if (w) return openWord(w);
+    const rx = (e.clientX - pager.getBoundingClientRect().left) / W;
+    if (rx > 0.66) next(); else if (rx < 0.34) prev();
+  });
+  const key = (e) => { if (e.key === 'ArrowRight' || e.key === 'PageDown') next(); if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev(); };
+  const onResize = () => layout(true);
+  addEventListener('keydown', key);
+  addEventListener('resize', onResize);
+  pagerCleanup = () => { removeEventListener('keydown', key); removeEventListener('resize', onResize); document.body.classList.remove('paged-mode'); };
+
+  (document.fonts?.ready || Promise.resolve()).then(() => {
+    layout(false);
+    if (sessionStorage.getItem('lf:lastPage')) { sessionStorage.removeItem('lf:lastPage'); go(pages - 1, false); }
+    else if (prog.ch === ch && prog.scroll) go(Math.round(prog.scroll * (pages - 1)), false);
+  });
 }
 
-function displaySheet() {
+function displaySheet(rerender) {
   const themes = ['light', 'sepia', 'grey', 'black'];
+  const mode = store.get('readMode') === 'scroll' ? 'scroll' : 'pages';
   openSheet(`<h2>Aa</h2>
     <div class="theme-row">${themes.map((th) => `<button class="theme-dot th-${th} ${store.get('theme') === th ? 'on' : ''}" data-th="${th}">${t('themes.' + th)}</button>`).join('')}</div>
     <div class="row-between"><span>${t('fontSize')}</span><div class="stepper"><button class="icon-btn" data-fs="-1">A−</button><b id="fsv">${store.get('fontSize')}</b><button class="icon-btn" data-fs="1">A+</button></div></div>
-    <div class="seg">${['serif', 'sans'].map((f) => `<button class="${store.get('font') === f ? 'on' : ''}" data-font="${f}">${t(f === 'serif' ? 'fontSerif' : 'fontSans')}</button>`).join('')}</div>`);
+    <div class="seg">${['serif', 'sans'].map((f) => `<button class="${store.get('font') === f ? 'on' : ''}" data-font="${f}">${t(f === 'serif' ? 'fontSerif' : 'fontSans')}</button>`).join('')}</div>
+    <div class="seg" style="margin-top:10px">${['pages', 'scroll'].map((m) => `<button class="${mode === m ? 'on' : ''}" data-mode="${m}">${t(m === 'pages' ? 'modePages' : 'modeScroll')}</button>`).join('')}</div>`,
+  { closed: rerender });
   const s = $('#sheet');
   s.onclick = (e) => {
     const b = e.target.closest('button');
     if (!b) return;
     if (b.dataset.th) { store.set('theme', b.dataset.th); $$('.theme-dot', s).forEach((x) => x.classList.toggle('on', x === b)); }
     if (b.dataset.fs) { store.set('fontSize', Math.min(32, Math.max(14, store.get('fontSize') + Number(b.dataset.fs)))); $('#fsv').textContent = store.get('fontSize'); }
-    if (b.dataset.font) {
-      store.set('font', b.dataset.font);
-      $$('[data-font]', s).forEach((x) => x.classList.toggle('on', x === b));
-      const art = $('.reader-text'); if (art) art.className = `reader-text font-${b.dataset.font}`;
-    }
+    if (b.dataset.font) { store.set('font', b.dataset.font); $$('[data-font]', s).forEach((x) => x.classList.toggle('on', x === b)); }
+    if (b.dataset.mode) { store.set('readMode', b.dataset.mode); $$('[data-mode]', s).forEach((x) => x.classList.toggle('on', x === b)); }
     applyTheme();
   };
 }

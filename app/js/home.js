@@ -59,7 +59,7 @@ export async function renderHome(view) {
     </section>
 
     ${recent ? `<button class="continue" data-book="${recent.b.id}">
-      <img src="covers/${recent.b.id}.svg" alt=""><div><small>${t('continue')}</small><strong>${esc(recent.b.title)}</strong>
+      <img src="${recent.b.cover || `covers/${recent.b.id}.svg`}" alt=""><div><small>${t('continue')}</small><strong>${esc(recent.b.title)}</strong>
       <span class="muted">${esc(recent.b.author)}</span><div class="bar"><div style="width:${Math.round(recent.p.pct * 100)}%"></div></div></div>
       <span class="play">▶</span></button>` : ''}
 

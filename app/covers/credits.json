@@ -1,0 +1,98 @@
+{
+ "japanische-maerchen": {
+  "file": "https://aleph.pglaf.org/2/3/3/9/23393/23393-h/images/cover_old_sm.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/23393",
+  "original": true
+ },
+ "kafka-urteil": {
+  "file": "https://aleph.pglaf.org/2/1/5/9/21593/21593-h/images/title-page.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/21593",
+  "original": true
+ },
+ "kafka-prozess": {
+  "file": "https://aleph.pglaf.org/6/9/3/2/69327/69327-h/images/frontcover.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/69327",
+  "original": true
+ },
+ "schiller-raeuber": {
+  "file": "https://aleph.pglaf.org/4/7/8/0/47804/47804-h/images/cover.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/47804",
+  "original": true
+ },
+ "mann-buddenbrooks": {
+  "file": "https://aleph.pglaf.org/3/4/8/1/34811/34811-h/images/cover.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/34811",
+  "original": true
+ },
+ "nietzsche-zarathustra": {
+  "file": "https://aleph.pglaf.org/7/2/0/7205/7205-h/images/cover.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/7205",
+  "original": true
+ },
+ "tolstoi-anna-karenina-1": {
+  "file": "https://aleph.pglaf.org/4/4/9/5/44956/44956-h/images/cover.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/44956",
+  "original": true
+ },
+ "kafka-verwandlung": {
+  "file": "https://aleph.pglaf.org/cache/epub/22367/pg22367.cover.medium.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/22367",
+  "original": true
+ },
+ "hoffmann-struwwelpeter": {
+  "file": "https://aleph.pglaf.org/cache/epub/24571/pg24571.cover.medium.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/24571",
+  "original": true
+ },
+ "eichendorff-taugenichts": {
+  "file": "https://aleph.pglaf.org/cache/epub/35312/pg35312.cover.medium.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/35312",
+  "original": true
+ },
+ "droste-judenbuche": {
+  "file": "https://aleph.pglaf.org/cache/epub/45798/pg45798.cover.medium.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/45798",
+  "original": true
+ },
+ "storm-schimmelreiter": {
+  "file": "https://aleph.pglaf.org/cache/epub/74008/pg74008.cover.medium.jpg",
+  "artist": "Project Gutenberg",
+  "date": "",
+  "license": "Public domain",
+  "page": "https://www.gutenberg.org/ebooks/74008",
+  "original": true
+ }
+}

@@ -1,168 +1,82 @@
 [
  {
-  "id": "anna-berlin",
-  "title": "Anna in Berlin",
-  "author": "Lesefreund",
+  "id": "grimm-brei",
+  "page": "Der süße Brei (1857)",
+  "candidates": [
+   "Der süße Brei (1812)"
+  ],
+  "title": "Der süße Brei",
   "level": "A1",
   "premium": false,
   "collections": [
-   "graded"
+   "graded",
+   "kids"
   ],
+  "artQuery": "Der süße Brei Grimm illustration",
   "description": {
-   "uk": "Анна вперше приїжджає до Берліна. Дуже прості речення для перших кроків.",
-   "ru": "Анна впервые приезжает в Берлин. Очень простые предложения.",
-   "en": "Anna visits Berlin for the first time. Very simple sentences."
+   "uk": "Чарівний горщик варить солодку кашу — і ніяк не може зупинитися. Одна з найкоротших казок Грімм.",
+   "ru": "Волшебный горшочек варит сладкую кашу — и никак не может остановиться.",
+   "en": "A magic pot cooks sweet porridge and won’t stop. One of the shortest Grimm tales."
   },
-  "chapters": [
-   {
-    "title": "Kapitel 1: Der Zug",
-    "paragraphs": [
-     "Anna ist zwanzig Jahre alt. Sie kommt aus Polen. Heute fährt sie mit dem Zug nach Berlin.",
-     "Der Zug ist groß und schnell. Anna sitzt am Fenster. Sie trinkt Kaffee und isst einen Apfel.",
-     "Neben Anna sitzt ein Mann. Er liest eine Zeitung. „Hallo“, sagt der Mann. „Wohin fahren Sie?“",
-     "„Ich fahre nach Berlin“, sagt Anna. „Ich lerne dort Deutsch.“ Der Mann lächelt. „Berlin ist sehr schön“, sagt er."
-    ]
-   },
-   {
-    "title": "Kapitel 2: Die Stadt",
-    "paragraphs": [
-     "Der Zug ist jetzt in Berlin. Anna nimmt ihren Koffer. Der Bahnhof ist sehr groß. Hier sind viele Menschen.",
-     "Anna sucht den Bus. Sie fragt eine Frau: „Entschuldigung, wo ist der Bus Nummer hundert?“ Die Frau sagt: „Der Bus ist dort, links.“",
-     "Anna fährt mit dem Bus durch die Stadt. Sie sieht das Brandenburger Tor, einen Park und viele Cafés.",
-     "Am Abend ist Anna müde, aber glücklich. Sie schreibt ihrer Mutter: „Berlin ist toll! Morgen beginnt mein Deutschkurs.“"
-    ]
-   }
-  ]
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863"
  },
  {
-  "id": "hund-max",
-  "title": "Der kleine Hund Max",
-  "author": "Lesefreund",
-  "level": "A1",
-  "premium": false,
-  "collections": [
-   "graded"
-  ],
-  "description": {
-   "uk": "Маленький пес Макс губиться в парку. Історія для зовсім початківців.",
-   "ru": "Маленький пёс Макс теряется в парке. История для самых начинающих.",
-   "en": "Max, a little dog, gets lost in the park. A story for absolute beginners."
-  },
-  "chapters": [
-   {
-    "title": "Max ist weg",
-    "paragraphs": [
-     "Max ist ein kleiner Hund. Er ist braun und weiß. Max wohnt mit Familie Müller in einem Haus.",
-     "Jeden Morgen geht Tom mit Max in den Park. Tom ist zehn Jahre alt. Max liebt den Park. Dort spielt er mit einem roten Ball.",
-     "Heute wirft Tom den Ball sehr weit. Max läuft und läuft. Dann ist Max weg! Tom ruft: „Max! Max! Wo bist du?“",
-     "Tom sucht überall. Er sucht hinter den Bäumen und neben dem See. Aber Max ist nicht da. Tom ist sehr traurig.",
-     "Plötzlich hört Tom etwas. „Wau! Wau!“ Max sitzt bei einer alten Frau auf der Bank. Sie gibt ihm ein Stück Brot.",
-     "„Ist das dein Hund?“, fragt die Frau. „Ja!“, sagt Tom. „Danke!“ Tom und Max gehen zusammen nach Hause. Max ist müde, aber er hat den Ball im Mund."
-    ]
-   }
-  ]
- },
- {
-  "id": "tag-am-meer",
-  "title": "Ein Tag am Meer",
-  "author": "Lesefreund",
+  "id": "grimm-geisslein",
+  "page": "Der Wolf und die sieben jungen Geißlein (1857)",
+  "title": "Der Wolf und die sieben jungen Geißlein",
   "level": "A2",
   "premium": false,
   "collections": [
-   "graded"
+   "graded",
+   "kids"
   ],
+  "artQuery": "Der Wolf und die sieben jungen Geißlein illustration",
   "description": {
-   "uk": "Родина проводить день на Північному морі. Тренуємо минулий час Perfekt.",
-   "ru": "Семья проводит день на Северном море. Прошедшее время Perfekt.",
-   "en": "A family spends a day at the North Sea. Practises the Perfekt tense."
+   "uk": "Вовк і семеро козенят: проста мова, багато повторів — легко читати.",
+   "ru": "Волк и семеро козлят: простой язык, много повторов.",
+   "en": "The wolf and the seven young goats: simple language, lots of repetition."
   },
-  "chapters": [
-   {
-    "title": "Die Reise",
-    "paragraphs": [
-     "Am Samstag ist Familie Schneider früh aufgestanden. Das Wetter war perfekt: Die Sonne hat geschienen und es war warm.",
-     "Papa hat das Auto gepackt. Mama hat Brötchen, Käse und Obst mitgenommen. Die Kinder, Lena und Paul, haben ihre Badesachen gesucht.",
-     "Die Fahrt hat zwei Stunden gedauert. Unterwegs haben sie Musik gehört und gesungen. Paul hat die ganze Zeit gefragt: „Sind wir bald da?“"
-    ]
-   },
-   {
-    "title": "Am Strand",
-    "paragraphs": [
-     "Endlich haben sie das Meer gesehen. Das Wasser war blau und der Sand war weich. Lena ist sofort ins Wasser gelaufen, aber das Wasser war ziemlich kalt!",
-     "Paul hat eine große Sandburg gebaut. Papa hat ihm geholfen. Mama hat ein Buch gelesen und ist kurz eingeschlafen.",
-     "Am Nachmittag sind sie in ein kleines Restaurant gegangen und haben Fisch gegessen. Danach hat jeder ein Eis bekommen.",
-     "Am Abend sind alle müde nach Hause gefahren. Im Auto hat Paul gesagt: „Das war der beste Tag in diesem Sommer!“"
-    ]
-   }
-  ]
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863"
  },
  {
-  "id": "haus-am-see",
-  "title": "Das alte Haus am See",
-  "author": "Lesefreund",
-  "level": "B1",
-  "premium": true,
+  "id": "grimm-frau-holle",
+  "page": "Frau Holle (1857)",
+  "title": "Frau Holle",
+  "level": "A2",
+  "premium": false,
   "collections": [
-   "graded"
+   "graded",
+   "kids"
   ],
+  "artQuery": "Frau Holle Ubbelohde",
   "description": {
-   "uk": "Таємниця старого будинку й забутого листа. Präteritum і підрядні речення.",
-   "ru": "Небольшая загадочная история о старом доме и забытом письме. Präteritum, придаточные.",
-   "en": "A small mystery about an old house and a forgotten letter. Präteritum, subordinate clauses."
+   "uk": "Пані Метелиця: працьовита дівчина потрапляє в чарівний світ під криницею.",
+   "ru": "Госпожа Метелица: трудолюбивая девушка попадает в волшебный мир.",
+   "en": "Mother Hulda: a hard-working girl finds a magic world at the bottom of a well."
   },
-  "chapters": [
-   {
-    "title": "Das Erbe",
-    "paragraphs": [
-     "Als Jonas den Brief vom Notar öffnete, konnte er kaum glauben, was er las: Seine Großtante Hilde, die er nur zweimal in seinem Leben gesehen hatte, hatte ihm ein Haus vererbt.",
-     "Das Haus lag an einem kleinen See in Brandenburg, weit weg von der nächsten Stadt. Jonas, der in einer winzigen Wohnung in Hamburg wohnte, beschloss, es sich am Wochenende anzusehen.",
-     "Schon von Weitem sah er, dass das Haus seit Jahren leer stand. Das Dach war mit Moos bedeckt, und im Garten wuchsen die Brennnesseln fast bis zu den Fenstern."
-    ]
-   },
-   {
-    "title": "Das Geheimnis",
-    "paragraphs": [
-     "Drinnen roch es nach Staub und alten Büchern. Die Möbel waren mit weißen Tüchern bedeckt, als ob jemand nur kurz weggefahren wäre und bald zurückkommen wollte.",
-     "Im Arbeitszimmer fand Jonas einen Schreibtisch aus dunklem Holz. Eine der Schubladen klemmte. Nachdem er eine Weile daran gezogen hatte, sprang sie plötzlich auf.",
-     "Darin lag ein Umschlag mit seinem Namen. Die Handschrift war zittrig, aber gut lesbar: „Lieber Jonas, wenn du diesen Brief liest, weißt du noch nicht, warum ich gerade dir dieses Haus hinterlassen habe.“",
-     "Jonas setzte sich auf den staubigen Stuhl und las weiter. Draußen begann es zu regnen, und die Tropfen klopften leise gegen das Fenster, während er die Geschichte seiner Familie zum ersten Mal wirklich verstand."
-    ]
-   }
-  ]
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863"
  },
  {
-  "id": "die-nachricht",
-  "title": "Die Nachricht",
-  "author": "Lesefreund",
-  "level": "B2",
-  "premium": true,
+  "id": "grimm-wichtelmaenner",
+  "page": "Die Wichtelmänner (1857)",
+  "title": "Die Wichtelmänner",
+  "level": "A2",
+  "premium": false,
   "collections": [
-   "graded"
+   "graded",
+   "kids"
   ],
+  "artQuery": "Die Wichtelmänner Grimm",
   "description": {
-   "uk": "Одне повідомлення змінює життя молодої журналістки. Konjunktiv II.",
-   "ru": "Одно сообщение меняет жизнь молодой журналистки. Konjunktiv II, сложные конструкции.",
-   "en": "One message changes the life of a young journalist. Konjunktiv II, complex structures."
+   "uk": "Маленькі чоловічки вночі допомагають бідному шевцю.",
+   "ru": "Маленькие человечки по ночам помогают бедному сапожнику.",
+   "en": "Little elves secretly help a poor shoemaker at night."
   },
-  "chapters": [
-   {
-    "title": "Mitternacht",
-    "paragraphs": [
-     "Hätte Miriam ihr Handy an jenem Abend ausgeschaltet, wäre ihr Leben vermutlich in ruhigen Bahnen verlaufen. Stattdessen leuchtete kurz nach Mitternacht der Bildschirm auf, und eine Nachricht von einer unbekannten Nummer erschien.",
-     "„Sie recherchieren in die falsche Richtung“, stand dort. „Wenn Sie die Wahrheit über das Bauprojekt erfahren wollen, kommen Sie morgen um acht zum alten Hafen.“",
-     "Miriam arbeitete seit knapp zwei Jahren als Lokaljournalistin, und obwohl sie sich oft nach einer großen Geschichte gesehnt hatte, war ihr bei dem Gedanken an ein anonymes Treffen alles andere als wohl."
-    ]
-   },
-   {
-    "title": "Der Hafen",
-    "paragraphs": [
-     "Am nächsten Morgen lag dichter Nebel über dem Wasser. Miriam hatte ihrer Kollegin Bescheid gegeben, wo sie sich aufhalten würde – für den Fall, dass etwas schiefginge.",
-     "Ein älterer Mann in einem grauen Mantel wartete bereits an der Kaimauer. Er wirkte nervös und sah sich ständig um, als befürchte er, beobachtet zu werden.",
-     "„Ich habe dreißig Jahre für die Stadtverwaltung gearbeitet“, begann er ohne Umschweife. „Was ich Ihnen jetzt erzähle, darf niemand mit mir in Verbindung bringen.“",
-     "Er reichte ihr einen USB-Stick. „Darauf finden Sie alles. Gutachten, die nie veröffentlicht wurden, und E-Mails, die belegen, dass die Risiken von Anfang an bekannt waren.“ Bevor Miriam auch nur eine Frage stellen konnte, war er im Nebel verschwunden."
-    ]
-   }
-  ]
+  "author": "Brüder Grimm",
+  "authorYears": "1785–1863"
  },
  {
   "id": "grimm-haensel",
@@ -183,7 +97,8 @@
    "uk": "Брат і сестра губляться в лісі й знаходять пряниковий будиночок відьми. Казка братів Грімм в оригіналі.",
    "ru": "Брат и сестра теряются в лесу и находят пряничный домик ведьмы. Сказка братьев Гримм в оригинале.",
    "en": "A brother and sister lost in the forest find a witch’s gingerbread house. The original Grimm tale."
-  }
+  },
+  "artQuery": "Hänsel und Gretel Ubbelohde"
  },
  {
   "id": "grimm-rotkaeppchen",
@@ -204,7 +119,8 @@
    "uk": "Червона Шапочка, бабуся і вовк — найвідоміша казка світу в оригіналі братів Грімм.",
    "ru": "Красная Шапочка, бабушка и волк — самая известная сказка в оригинале братьев Гримм.",
    "en": "Little Red Riding Hood, grandmother and the wolf — the world’s best-known fairy tale."
-  }
+  },
+  "artQuery": "Rotkäppchen Ubbelohde"
  },
  {
   "id": "grimm-bremer",
@@ -224,7 +140,8 @@
    "uk": "Осел, пес, кіт і півень вирушають до Бремена, щоб стати музикантами.",
    "ru": "Осёл, пёс, кот и петух отправляются в Бремен, чтобы стать музыкантами.",
    "en": "A donkey, a dog, a cat and a rooster set off for Bremen to become musicians."
-  }
+  },
+  "artQuery": "Bremer Stadtmusikanten Ubbelohde"
  },
  {
   "id": "grimm-froschkoenig",
@@ -241,7 +158,8 @@
    "uk": "Принцеса губить золоту кульку, а жаба обіцяє допомогти — за одну умову.",
    "ru": "Принцесса роняет золотой мяч, а лягушка обещает помочь — при одном условии.",
    "en": "A princess drops her golden ball, and a frog offers help — on one condition."
-  }
+  },
+  "artQuery": "Froschkönig Ubbelohde"
  },
  {
   "id": "grimm-sterntaler",
@@ -262,7 +180,8 @@
    "uk": "Бідна дівчинка віддає все, що має, — і зорі падають з неба золотими монетами.",
    "ru": "Бедная девочка отдаёт всё, что у неё есть, — и звёзды падают с неба золотыми монетами.",
    "en": "A poor girl gives away everything she has — and the stars fall as golden coins."
-  }
+  },
+  "artQuery": "Sterntaler Ubbelohde"
  },
  {
   "id": "grimm-sneewittchen",
@@ -279,7 +198,8 @@
    "uk": "Білосніжка, сім гномів і чарівне дзеркальце. Довша казка з багатою мовою.",
    "ru": "Белоснежка, семь гномов и волшебное зеркальце. Более длинная сказка с богатым языком.",
    "en": "Snow White, the seven dwarfs and the magic mirror. A longer tale with rich language."
-  }
+  },
+  "artQuery": "Schneewittchen Ubbelohde"
  },
  {
   "id": "grimm-rumpelstilzchen",
@@ -296,7 +216,8 @@
    "uk": "Чоловічок, що пряде солому на золото, і його таємне ім’я.",
    "ru": "Человечек, который прядёт солому в золото, и его тайное имя.",
    "en": "A little man who spins straw into gold — and his secret name."
-  }
+  },
+  "artQuery": "Rumpelstilzchen Ubbelohde"
  },
  {
   "id": "busch-max-moritz",
@@ -315,7 +236,8 @@
    "uk": "Сім витівок двох шибеників у віршах — класика німецького дитинства.",
    "ru": "Семь проделок двух сорванцов в стихах — классика немецкого детства.",
    "en": "Seven pranks of two rascals in verse — a classic of German childhood."
-  }
+  },
+  "artQuery": "Max und Moritz Titelblatt 1865"
  },
  {
   "id": "hoffmann-struwwelpeter",
@@ -337,7 +259,8 @@
    "uk": "Кумедні й трохи страшні віршовані історії про неслухняних дітей (1845).",
    "ru": "Смешные и немного страшные стихотворные истории о непослушных детях (1845).",
    "en": "Funny and slightly scary verse stories about naughty children (1845)."
-  }
+  },
+  "artQuery": "Struwwelpeter 1845 Titelblatt"
  },
  {
   "id": "hauff-zwerg-nase",
@@ -356,7 +279,8 @@
    "uk": "«Карлик Ніс»: хлопчика зачаровує відьма, і він стає кухарем у герцога. Казка Гауфа.",
    "ru": "«Карлик Нос»: мальчика заколдовывает ведьма, и он становится поваром у герцога. Сказка Гауфа.",
    "en": "A boy bewitched by a fairy becomes the duke’s cook. Hauff’s famous tale."
-  }
+  },
+  "artQuery": "Zwerg Nase Illustration"
  },
  {
   "id": "hauff-kalif-storch",
@@ -377,7 +301,8 @@
    "uk": "Халіф перетворюється на лелеку й забуває чарівне слово.",
    "ru": "Халиф превращается в аиста и забывает волшебное слово.",
    "en": "A caliph turns into a stork and forgets the magic word."
-  }
+  },
+  "artQuery": "Kalif Storch Hauff"
  },
  {
   "id": "kafka-gesetz",
@@ -395,7 +320,8 @@
    "uk": "Притча Кафки про чоловіка, який усе життя чекає біля брами Закону. Дві сторінки, що їх аналізують у кожній школі.",
    "ru": "Притча Кафки о человеке, который всю жизнь ждёт у врат Закона.",
    "en": "Kafka’s parable of a man who waits all his life at the gate of the Law."
-  }
+  },
+  "artQuery": "Franz Kafka 1906"
  },
  {
   "id": "kafka-verwandlung",
@@ -415,7 +341,8 @@
    "uk": "«Перевтілення»: Грегор Замза прокидається комахою. Повний текст першого видання 1915 року.",
    "ru": "«Превращение»: Грегор Замза просыпается насекомым. Полный текст первого издания 1915 года.",
    "en": "Gregor Samsa wakes up as an insect. Complete text of the 1915 first edition."
-  }
+  },
+  "artQuery": "Franz Kafka portrait"
  },
  {
   "id": "kafka-landarzt",
@@ -433,7 +360,8 @@
    "uk": "Сільський лікар серед ночі їде до хворого — моторошна й сновидна новела.",
    "ru": "Сельский врач ночью едет к больному — жуткая, сноподобная новелла.",
    "en": "A country doctor’s nightmarish night journey to a patient."
-  }
+  },
+  "artQuery": "Ein Landarzt Kafka 1920"
  },
  {
   "id": "goethe-erlkoenig",
@@ -452,7 +380,8 @@
    "uk": "«Лісовий цар»: батько скаче вночі з хворим сином. Найвідоміша балада Ґете.",
    "ru": "«Лесной царь»: отец скачет ночью с больным сыном. Самая известная баллада Гёте.",
    "en": "A father rides through the night with his sick son. Goethe’s most famous ballad."
-  }
+  },
+  "artQuery": "Erlkönig Schwind"
  },
  {
   "id": "schiller-buergschaft",
@@ -471,7 +400,8 @@
    "uk": "Балада про дружбу й вірність: друг ручається життям за засудженого.",
    "ru": "Баллада о дружбе и верности: друг ручается жизнью за осуждённого.",
    "en": "A ballad of friendship: a man stakes his life for a condemned friend."
-  }
+  },
+  "artQuery": "Friedrich Schiller Porträt Graff"
  },
  {
   "id": "storm-schimmelreiter",
@@ -489,7 +419,8 @@
    "uk": "«Вершник на білому коні»: доглядач дамб Гауке Гайєн бореться з морем і забобонами.",
    "ru": "«Всадник на белом коне»: смотритель дамб Хауке Хайен борется с морем и суевериями.",
    "en": "Dike-reeve Hauke Haien battles the sea and superstition."
-  }
+  },
+  "artQuery": "Der Schimmelreiter 1888 Storm Erstausgabe"
  },
  {
   "id": "eichendorff-taugenichts",
@@ -507,7 +438,8 @@
    "uk": "Веселий нероба вирушає у світ зі скрипкою. Класика німецького романтизму.",
    "ru": "Весёлый бездельник отправляется в мир со скрипкой. Классика немецкого романтизма.",
    "en": "A cheerful good-for-nothing sets out into the world with his violin."
-  }
+  },
+  "artQuery": "Aus dem Leben eines Taugenichts 1826 Titelblatt"
  },
  {
   "id": "droste-judenbuche",
@@ -525,7 +457,8 @@
    "uk": "Детективна новела про вбивство в лісовому селі. Обов’язкове шкільне читання в Німеччині.",
    "ru": "Детективная новелла об убийстве в лесной деревне. Обязательное школьное чтение в Германии.",
    "en": "A crime novella set in a forest village — a German school classic."
-  }
+  },
+  "artQuery": "Annette von Droste-Hülshoff Porträt"
  },
  {
   "id": "keller-kleider",
@@ -543,7 +476,8 @@
    "uk": "Бідного кравця через гарне пальто приймають за графа. Іронічна новела.",
    "ru": "Бедного портного из-за красивого пальто принимают за графа. Ироничная новелла.",
    "en": "A poor tailor in a fine coat is mistaken for a count."
-  }
+  },
+  "artQuery": "Gottfried Keller Porträt"
  },
  {
   "id": "hoffmann-sandmann",
@@ -564,7 +498,8 @@
    "uk": "Моторошна історія Натанаеля, піщаної людини й механічної ляльки Олімпії.",
    "ru": "Жуткая история Натанаэля, Песочного человека и механической куклы Олимпии.",
    "en": "Nathanael, the Sandman and the mechanical doll Olimpia."
-  }
+  },
+  "artQuery": "Sandmann E. T. A. Hoffmann"
  },
  {
   "id": "hoffmann-goldner-topf",
@@ -583,7 +518,8 @@
    "uk": "«Золотий горнець»: студент Ансельм закохується в золотисто-зелену змійку. Романтична казка.",
    "ru": "«Золотой горшок»: студент Ансельм влюбляется в золотисто-зелёную змейку.",
    "en": "Student Anselmus falls in love with a golden-green snake. A Romantic fairy tale."
-  }
+  },
+  "artQuery": "Der goldne Topf Hoffmann"
  },
  {
   "id": "heine-weber",
@@ -602,7 +538,8 @@
    "uk": "Гнівний вірш Гейне про повстання ткачів 1844 року.",
    "ru": "Гневное стихотворение Гейне о восстании ткачей 1844 года.",
    "en": "Heine’s angry poem about the 1844 weavers’ uprising."
-  }
+  },
+  "artQuery": "Käthe Kollwitz Weberaufstand"
  },
  {
   "id": "kleist-kohlhaas",
@@ -624,11 +561,12 @@
  },
  {
   "id": "hauptmann-thiel",
-  "page": "Bahnwärter Thiel",
+  "gutenberg": 29376,
   "title": "Bahnwärter Thiel",
   "author": "Gerhart Hauptmann",
   "authorYears": "1862–1946",
   "year": "1888",
+  "translator": null,
   "level": "C1",
   "premium": true,
   "collections": [
@@ -636,9 +574,10 @@
   ],
   "description": {
    "uk": "Залізничний сторож Тіль між двома дружинами й двома світами. Натуралізм.",
-   "ru": "Железнодорожный сторож Тиль между двумя жёнами и двумя мирами. Натурализм.",
+   "ru": "Железнодорожный сторож Тиль между двумя жёнами и двумя мирами.",
    "en": "A railway signalman torn between two wives and two worlds."
-  }
+  },
+  "artQuery": "Gerhart Hauptmann Porträt"
  },
  {
   "id": "goethe-faust",
@@ -662,7 +601,8 @@
    "uk": "Доктор Фауст укладає угоду з Мефістофелем. Головна книжка німецької літератури.",
    "ru": "Доктор Фауст заключает договор с Мефистофелем. Главная книга немецкой литературы.",
    "en": "Doctor Faust makes a pact with Mephistopheles."
-  }
+  },
+  "artQuery": "Faust Delacroix Mephistopheles"
  },
  {
   "id": "hoffmann-zaches",
@@ -706,7 +646,8 @@
    "uk": "«Не знаю, що стало зо мною…» — вірш Гейне про чарівницю на скелі над Рейном.",
    "ru": "«Не знаю, что значит такое…» — стихотворение Гейне о чаровнице над Рейном.",
    "en": "Heine’s poem about the siren on the rock above the Rhine."
-  }
+  },
+  "artQuery": "Lorelei Rhein Gemälde"
  },
  {
   "id": "tschechow-erzaehlungen",
@@ -733,7 +674,8 @@
    "uk": "Оповідання Чехова в старих німецьких перекладах: діти, кохання, лікарі й маленькі трагедії.",
    "ru": "Рассказы Чехова в старых немецких переводах: дети, любовь, врачи и маленькие трагедии.",
    "en": "Chekhov’s short stories in early German translations."
-  }
+  },
+  "artQuery": "Anton Chekhov 1898 portrait"
  },
  {
   "id": "schewtschenko-gedichte",
@@ -765,7 +707,8 @@
    "uk": "Вірші Шевченка в німецьких перекладах кінця XIX — початку XX ст.: «Заповіт», «Кавказ», «Перебендя», «Марія» та інші.",
    "ru": "Стихи Шевченко в немецких переводах: «Завещание», «Кавказ», «Перебендя», «Мария» и другие.",
    "en": "Shevchenko’s poems in early German translations: “Testament”, “Caucasus” and more."
-  }
+  },
+  "artQuery": "Taras Shevchenko self-portrait"
  },
  {
   "id": "franko-schewtschenko",
@@ -782,7 +725,8 @@
    "uk": "Нарис Івана Франка про Шевченка, написаний німецькою самим Франком.",
    "ru": "Очерк Ивана Франко о Шевченко, написанный по-немецки самим Франко.",
    "en": "Ivan Franko’s essay on Shevchenko, written by Franko in German."
-  }
+  },
+  "artQuery": "Ivan Franko portrait"
  },
  {
   "id": "jensen-schewtschenko",
@@ -800,6 +744,372 @@
    "uk": "Біографія Шевченка з перекладами його віршів (1916).",
    "ru": "Биография Шевченко с переводами его стихов (1916).",
    "en": "A biography of Shevchenko with translations of his poems (1916)."
+  },
+  "artQuery": "Taras Shevchenko portrait Kramskoi"
+ },
+ {
+  "id": "japanische-maerchen",
+  "gutenberg": 23393,
+  "title": "Japanische Märchen",
+  "author": "Karl Alberti (Übers.)",
+  "authorYears": null,
+  "year": null,
+  "translator": "Karl Alberti",
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "japan",
+   "kids"
+  ],
+  "description": {
+   "uk": "Старовинні японські казки й легенди в німецькому перекладі: Момотаро, вдячний журавель, рибалка Урасіма.",
+   "ru": "Старинные японские сказки и легенды: Момотаро, благодарный журавль, рыбак Урасима.",
+   "en": "Old Japanese fairy tales and legends: Momotaro, the grateful crane, Urashima."
+  }
+ },
+ {
+  "id": "busch-bildergeschichten",
+  "gutenberg": 19636,
+  "title": "Bildergeschichten",
+  "author": "Wilhelm Busch",
+  "authorYears": "1832–1908",
+  "year": null,
+  "translator": null,
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "kids",
+   "poetry"
+  ],
+  "description": {
+   "uk": "Смішні віршовані історії Вільгельма Буша — автора «Макса і Моріца».",
+   "ru": "Смешные стихотворные истории Вильгельма Буша.",
+   "en": "Wilhelm Busch’s funny picture stories in verse."
+  },
+  "artQuery": "Wilhelm Busch Bildergeschichte"
+ },
+ {
+  "id": "kafka-urteil",
+  "gutenberg": 21593,
+  "title": "Das Urteil",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1913",
+  "translator": null,
+  "level": "B2",
+  "premium": false,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Коротка новела Кафки про сина, батька й вирок. Читається за один вечір.",
+   "ru": "Короткая новелла Кафки об отце, сыне и приговоре.",
+   "en": "Kafka’s short story of a son, his father and a verdict."
+  }
+ },
+ {
+  "id": "kafka-prozess",
+  "gutenberg": 69327,
+  "title": "Der Process",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1925",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "world"
+  ],
+  "description": {
+   "uk": "«Процес»: Йозефа К. заарештовують, не кажучи за що. Один з головних романів XX століття.",
+   "ru": "«Процесс»: Йозефа К. арестовывают, не объясняя за что.",
+   "en": "Josef K. is arrested without being told why."
+  }
+ },
+ {
+  "id": "kafka-strafkolonie",
+  "gutenberg": 25791,
+  "title": "In der Strafkolonie",
+  "author": "Franz Kafka",
+  "authorYears": "1883–1924",
+  "year": "1919",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Мандрівник оглядає страшну машину для страти. Новела Кафки.",
+   "ru": "Путешественник осматривает страшную машину для казни.",
+   "en": "A traveller is shown a terrible execution machine."
+  },
+  "artQuery": "In der Strafkolonie 1919 Kafka"
+ },
+ {
+  "id": "goethe-werther",
+  "gutenberg": 2407,
+  "title": "Die Leiden des jungen Werther. Band 1",
+  "author": "Johann Wolfgang von Goethe",
+  "authorYears": "1749–1832",
+  "year": "1774",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "school-ua",
+   "world"
+  ],
+  "description": {
+   "uk": "«Страждання юного Вертера» — роман у листах, що зробив Ґете знаменитим.",
+   "ru": "«Страдания юного Вертера» — роман в письмах.",
+   "en": "The epistolary novel that made Goethe famous."
+  },
+  "artQuery": "Werther 1774 Titelblatt Erstausgabe"
+ },
+ {
+  "id": "schiller-raeuber",
+  "gutenberg": 47804,
+  "title": "Die Räuber",
+  "author": "Friedrich Schiller",
+  "authorYears": "1759–1805",
+  "year": "1781",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "«Розбійники»: брати Карл і Франц Моор — драма бунту й свободи.",
+   "ru": "«Разбойники»: драма о братьях Карле и Франце Моор.",
+   "en": "The brothers Karl and Franz Moor — Schiller’s drama of rebellion."
+  }
+ },
+ {
+  "id": "fontane-effi",
+  "gutenberg": 5323,
+  "title": "Effi Briest",
+  "author": "Theodor Fontane",
+  "authorYears": "1819–1898",
+  "year": "1895",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "world"
+  ],
+  "description": {
+   "uk": "Сімнадцятирічна Еффі виходить заміж за старшого барона. Найвідоміший роман Фонтане.",
+   "ru": "Семнадцатилетняя Эффи выходит замуж за барона. Самый известный роман Фонтане.",
+   "en": "Seventeen-year-old Effi marries an older baron. Fontane’s best-known novel."
+  },
+  "artQuery": "Effi Briest Erstausgabe 1896"
+ },
+ {
+  "id": "mann-tod-venedig",
+  "gutenberg": 12108,
+  "title": "Der Tod in Venedig",
+  "author": "Thomas Mann",
+  "authorYears": "1875–1955",
+  "year": "1912",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "world"
+  ],
+  "description": {
+   "uk": "«Смерть у Венеції»: письменник Ашенбах і остання подорож. Томас Манн — вільний в ЄС з 2026 року.",
+   "ru": "«Смерть в Венеции»: писатель Ашенбах и последнее путешествие.",
+   "en": "The writer Aschenbach’s last journey."
+  },
+  "artQuery": "Der Tod in Venedig 1912 Erstausgabe"
+ },
+ {
+  "id": "mann-buddenbrooks",
+  "gutenberg": 34811,
+  "title": "Buddenbrooks",
+  "author": "Thomas Mann",
+  "authorYears": "1875–1955",
+  "year": "1901",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "world",
+   "school-de"
+  ],
+  "description": {
+   "uk": "Занепад багатої любекської родини за чотири покоління. Нобелівський роман Томаса Манна.",
+   "ru": "Упадок богатой любекской семьи за четыре поколения.",
+   "en": "The decline of a wealthy Lübeck family over four generations."
+  }
+ },
+ {
+  "id": "hmann-untertan",
+  "gutenberg": 38126,
+  "title": "Der Untertan",
+  "author": "Heinrich Mann",
+  "authorYears": "1871–1950",
+  "year": "1918",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Сатира на вірнопідданого Дідеріха Гесліна та кайзерівську Німеччину.",
+   "ru": "Сатира на верноподданного Дидериха Геслинга.",
+   "en": "A satire of the loyal subject Diederich Heßling."
+  },
+  "artQuery": "Der Untertan Heinrich Mann 1918"
+ },
+ {
+  "id": "nietzsche-zarathustra",
+  "gutenberg": 7205,
+  "title": "Also sprach Zarathustra",
+  "author": "Friedrich Nietzsche",
+  "authorYears": "1844–1900",
+  "year": "1883",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "world"
+  ],
+  "description": {
+   "uk": "«Так казав Заратустра» — філософська поема Ніцше.",
+   "ru": "«Так говорил Заратустра» — философская поэма Ницше.",
+   "en": "Nietzsche’s philosophical poem."
+  }
+ },
+ {
+  "id": "trakl-dichtungen",
+  "gutenberg": 29006,
+  "title": "Die Dichtungen",
+  "author": "Georg Trakl",
+  "authorYears": "1887–1914",
+  "year": "1919",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "poetry"
+  ],
+  "description": {
+   "uk": "Вірші австрійського експресіоніста Георга Тракля.",
+   "ru": "Стихи австрийского экспрессиониста Георга Тракля.",
+   "en": "Poems by the Austrian expressionist Georg Trakl."
+  },
+  "artQuery": "Georg Trakl Porträt"
+ },
+ {
+  "id": "goethe-werther-2",
+  "gutenberg": 2408,
+  "title": "Die Leiden des jungen Werther. Band 2",
+  "author": "Johann Wolfgang von Goethe",
+  "authorYears": "1749–1832",
+  "year": "1774",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de",
+   "school-ua",
+   "world"
+  ],
+  "description": {
+   "uk": "«Страждання юного Вертера» — роман у листах, що зробив Ґете знаменитим.",
+   "ru": "«Страдания юного Вертера» — роман в письмах.",
+   "en": "The epistolary novel that made Goethe famous."
+  },
+  "artQuery": "Werther 1774 Titelblatt Erstausgabe"
+ },
+ {
+  "id": "buechner-woyzeck",
+  "gutenberg": 5322,
+  "title": "Woyzeck",
+  "author": "Georg Büchner",
+  "authorYears": "1813–1837",
+  "year": "1879",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "school-de"
+  ],
+  "description": {
+   "uk": "Солдат Войцек, приниженість і ревнощі. Обов’язкова п’єса в німецьких школах.",
+   "ru": "Солдат Войцек, унижение и ревность. Обязательная пьеса в школах Германии.",
+   "en": "A soldier, humiliation and jealousy. A German school classic."
+  },
+  "artQuery": "Georg Büchner Porträt"
+ },
+ {
+  "id": "spyri-heidi",
+  "gutenberg": 7500,
+  "title": "Heidis Lehr- und Wanderjahre",
+  "author": "Johanna Spyri",
+  "authorYears": "1827–1901",
+  "year": "1880",
+  "translator": null,
+  "level": "B1",
+  "premium": false,
+  "collections": [
+   "kids",
+   "world"
+  ],
+  "description": {
+   "uk": "«Хайді»: дівчинка-сирота в Альпах у дідуся. Оригінал німецькою — одна з найулюбленіших дитячих книжок світу.",
+   "ru": "«Хайди»: девочка-сирота в Альпах у дедушки. Оригинал на немецком.",
+   "en": "Heidi, the orphan girl in the Alps — the German original."
+  },
+  "artQuery": "Heidi Spyri 1880 Erstausgabe"
+ },
+ {
+  "id": "bonsels-biene-maja",
+  "gutenberg": 21021,
+  "title": "Die Biene Maja und ihre Abenteuer",
+  "author": "Waldemar Bonsels",
+  "authorYears": "1880–1952",
+  "year": "1912",
+  "translator": null,
+  "level": "B1",
+  "premium": true,
+  "collections": [
+   "kids"
+  ],
+  "description": {
+   "uk": "«Бджілка Майя»: допитлива бджілка вирушає у світ. Класика, з якої виріс знаменитий мультфільм.",
+   "ru": "«Пчёлка Майя»: любопытная пчёлка отправляется в мир.",
+   "en": "Maya the Bee sets out into the world."
+  },
+  "artQuery": "Biene Maja Bonsels 1912"
+ },
+ {
+  "id": "tolstoi-anna-karenina-1",
+  "gutenberg": 44956,
+  "title": "Anna Karenina. Band 1",
+  "author": "Lew Tolstoi",
+  "authorYears": "1828–1910",
+  "year": "1878",
+  "translator": null,
+  "level": "C1",
+  "premium": true,
+  "collections": [
+   "slavic",
+   "world"
+  ],
+  "description": {
+   "uk": "«Анна Кареніна» Толстого в старому німецькому перекладі, том 1.",
+   "ru": "«Анна Каренина» Толстого в старом немецком переводе, том 1.",
+   "en": "Tolstoy’s Anna Karenina in an early German translation, vol. 1."
   }
  }
 ]
