@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lesefreund — Админка</title>
+<style>
+  :root { --bg:#f4f5f8; --card:#fff; --text:#1f2430; --muted:#6b7280; --line:#e3e5ea; --accent:#1d3557; --ok:#2a9d8f; --err:#d62828; --warn:#f4a261; color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#121419; --card:#1c1f26; --text:#e8e6e1; --muted:#9aa0aa; --line:#2c3039; --accent:#8fb3e8; color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 22px; margin: 8px 0 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .card { background:var(--card); border-radius:14px; padding:16px; margin-bottom:14px; box-shadow:0 4px 18px rgba(0,0,0,.06); }
+  .card h2 { font-size:17px; margin:0 0 12px; }
+  .grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  label { display:grid; gap:4px; font-size:13px; font-weight:600; color:var(--muted); }
+  input, select { font:inherit; color:var(--text); background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:10px 12px; width:100%; }
+  button { font:inherit; cursor:pointer; border:0; border-radius:10px; padding:10px 16px; font-weight:600; background:var(--accent); color:var(--bg); }
+  button.ghost { background:transparent; color:var(--accent); border:1px solid var(--line); }
+  button.small { padding:6px 10px; font-size:13px; }
+  button.danger { background:transparent; color:var(--err); border:1px solid var(--line); }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .presets { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
+  .presets button { background:var(--bg); color:var(--text); border:1px solid var(--line); font-weight:500; }
+  .banner { padding:12px 14px; border-radius:12px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  .banner.stale { background: color-mix(in srgb, var(--warn) 25%, var(--card)); }
+  .banner.fresh { background: color-mix(in srgb, var(--ok) 18%, var(--card)); }
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  th { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  td code { font-size:15px; font-weight:700; letter-spacing:.04em; }
+  tr.disabled td { opacity:.45; }
+  .tag { font-size:12px; padding:2px 8px; border-radius:99px; background:var(--bg); border:1px solid var(--line); white-space:nowrap; }
+  .tag.exp { color:var(--err); }
+  .muted { color:var(--muted); font-size:13px; }
+  .msg { margin-top:10px; font-weight:600; }
+  .msg.err { color:var(--err); } .msg.ok { color:var(--ok); }
+  .login { max-width:360px; margin:15vh auto; }
+  #created { white-space:pre; font-family:ui-monospace, monospace; background:var(--bg); padding:12px; border-radius:10px; max-height:200px; overflow:auto; display:none; margin-top:10px; }
+  @media (max-width: 640px) {
+    thead { display:none; }
+    tr { display:grid; grid-template-columns: 1fr auto; gap:4px 8px; padding:10px 0; border-bottom:1px solid var(--line); }
+    td { border:0; padding:2px 0; }
+    td.actions { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+const app = $('#app');
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, { ...opts, headers: { 'Content-Type': 'application/json' }, body: opts.body && JSON.stringify(opts.body) });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== '/api/login') { renderLogin(); throw new Error('auth'); }
+  if (!res.ok) throw new Error(data.error || res.statusText);
+  return data;
+}
+
+function duration(min) {
+  if (min < 0) return '∞ навсегда';
+  const units = [[43200, 'мес'], [10080, 'нед'], [1440, 'дн'], [60, 'ч'], [1, 'мин']];
+  for (const [m, n] of units) if (min % m === 0) return `${min / m} ${n}`;
+  return `${min} мин`;
+}
+const fmt = (iso) => iso ? new Date(iso).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
+
+function renderLogin(err = '') {
+  app.innerHTML = `<div class="card login"><h2>🔐 Lesefreund — админка</h2>
+    <form id="lf" class="grid" style="grid-template-columns:1fr">
+      <label>Пароль<input id="pw" type="password" autofocus autocomplete="current-password"></label>
+      <button>Войти</button></form>
+    <div class="msg err">${esc(err)}</div>
+    <p class="muted">Пароль выводится в консоль при первом запуске <code>npm run admin</code>.</p></div>`;
+  $('#lf').onsubmit = async (e) => {
+    e.preventDefault();
+    try { await api('/api/login', { method: 'POST', body: { password: $('#pw').value } }); load(); }
+    catch (er) { renderLogin(er.message); }
+  };
+}
+
+let state = { codes: [], stale: false, filter: '' };
+async function load() {
+  try { Object.assign(state, await api('/api/codes')); render(); } catch (e) { if (e.message !== 'auth') alert(e.message); }
+}
+
+function render() {
+  const q = state.filter.toLowerCase();
+  const list = state.codes.filter((c) => !q || c.code.toLowerCase().includes(q) || (c.note || '').toLowerCase().includes(q));
+  const now = Date.now();
+  app.innerHTML = `
+  <h1>🎁 Промокоды Lesefreund <span class="row"><a href="/api/export.csv"><button class="ghost small">CSV</button></a><button class="ghost small" id="logout">Выйти</button></span></h1>
+
+  <div class="banner ${state.stale ? 'stale' : 'fresh'}">
+    <div>${state.stale
+      ? '⚠️ Есть изменения, которые ещё не попали в приложение. Нажмите «Опубликовать», затем выпустите обновление приложения.'
+      : '✅ Пак промокодов в приложении актуален.'}
+      <div class="muted">${esc(state.packFile || '')}</div></div>
+    <button id="publish">Опубликовать в приложение</button>
+  </div>
+
+  <div class="card">
+    <h2>Создать промокоды</h2>
+    <div class="presets">
+      <button data-p="1,hours">1 час</button><button data-p="1,days">1 день</button>
+      <button data-p="1,weeks">1 неделя</button><button data-p="1,months">1 месяц</button>
+      <button data-p="3,months">3 месяца</button><button data-p="1,forever">Навсегда</button>
+    </div>
+    <form id="cf" class="grid">
+      <label>Длительность<input id="val" type="number" min="1" step="1" value="1"></label>
+      <label>Единица<select id="unit">
+        <option value="minutes">минут</option><option value="hours">часов</option><option value="days">дней</option>
+        <option value="weeks" selected>недель</option><option value="months">месяцев (30 дн)</option><option value="forever">навсегда</option>
+      </select></label>
+      <label>Сколько кодов<input id="count" type="number" min="1" max="500" value="5"></label>
+      <label>Префикс (необяз.)<input id="prefix" maxlength="10" placeholder="LESE"></label>
+      <label>Активировать до (необяз.)<input id="vu" type="datetime-local"></label>
+      <label>Свой код (необяз.)<input id="custom" placeholder="WINTER2026"></label>
+      <label style="grid-column:1/-1">Заметка<input id="note" placeholder="Например: для блогера, розыгрыш в Instagram"></label>
+      <button style="grid-column:1/-1">Создать</button>
+    </form>
+    <div id="cmsg" class="msg"></div>
+    <div id="created"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px">
+      <h2 style="margin:0">Все коды (${state.codes.length})</h2>
+      <input id="q" placeholder="Поиск…" value="${esc(state.filter)}" style="max-width:220px">
+    </div>
+    <table><thead><tr><th>Код</th><th>Даёт</th><th>Активировать до</th><th>Заметка</th><th></th></tr></thead><tbody>
+    ${list.map((c) => {
+      const expired = c.validUntil && Date.parse(c.validUntil) < now;
+      return `<tr class="${c.disabled ? 'disabled' : ''}">
+        <td><code>${esc(c.code)}</code><div class="muted">${fmt(c.createdAt)}</div></td>
+        <td><span class="tag">${duration(c.minutes)}</span></td>
+        <td>${c.validUntil ? `<span class="tag ${expired ? 'exp' : ''}">${fmt(c.validUntil)}</span>` : '<span class="muted">без срока</span>'}</td>
+        <td class="muted">${esc(c.note)}</td>
+        <td class="actions"><div class="row">
+          <button class="ghost small" data-copy="${esc(c.code)}">Копировать</button>
+          <button class="ghost small" data-toggle="${c.id}">${c.disabled ? 'Включить' : 'Отключить'}</button>
+          <button class="danger small" data-del="${c.id}">Удалить</button></div></td></tr>`;
+    }).join('') || '<tr><td colspan="5" class="muted">Пока нет кодов</td></tr>'}
+    </tbody></table>
+  </div>
+  <p class="muted">Как это работает: коды хранятся только здесь (admin/data/codes.json). В приложение уходят лишь их хеши (app/promo-pack.json),
+  поэтому из файлов приложения коды узнать нельзя. Отключённые коды не попадают в пак при следующей публикации.</p>`;
+
+  $('#logout').onclick = async () => { await api('/api/logout', { method: 'POST' }); renderLogin(); };
+  $('#publish').onclick = async () => {
+    const r = await api('/api/publish', { method: 'POST' });
+    alert(`Опубликовано кодов: ${r.count}\nФайл: ${r.file}\n\nТеперь выпустите обновление приложения (или задеплойте сайт).`);
+    load();
+  };
+  $('#q').oninput = (e) => { state.filter = e.target.value; render(); const i = $('#q'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); };
+  const unit = $('#unit');
+  const syncUnit = () => { $('#val').disabled = unit.value === 'forever'; };
+  unit.onchange = syncUnit;
+  app.querySelectorAll('[data-p]').forEach((b) => b.onclick = () => { const [v, u] = b.dataset.p.split(','); $('#val').value = v; unit.value = u; syncUnit(); });
+  $('#cf').onsubmit = async (e) => {
+    e.preventDefault();
+    const msg = $('#cmsg');
+    try {
+      const r = await api('/api/codes', { method: 'POST', body: {
+        value: $('#val').value, unit: unit.value, count: $('#count').value, prefix: $('#prefix').value,
+        validUntil: $('#vu').value || null, note: $('#note').value, customCode: $('#custom').value,
+      }});
+      Object.assign(state, await api('/api/codes'));
+      render();
+      $('#cmsg').className = 'msg ok';
+      $('#cmsg').textContent = `Создано: ${r.created.length}. Не забудьте опубликовать!`;
+      const box = $('#created'); box.style.display = 'block'; box.textContent = r.created.map((c) => c.code).join('\n');
+    } catch (er) { msg.className = 'msg err'; msg.textContent = er.message; }
+  };
+  app.querySelectorAll('[data-copy]').forEach((b) => b.onclick = async () => {
+    try { await navigator.clipboard.writeText(b.dataset.copy); b.textContent = 'Скопировано ✓'; }
+    catch { prompt('Скопируйте код:', b.dataset.copy); }
+  });
+  app.querySelectorAll('[data-toggle]').forEach((b) => b.onclick = async () => {
+    const c = state.codes.find((x) => x.id === b.dataset.toggle);
+    await api('/api/codes/' + c.id, { method: 'PATCH', body: { disabled: !c.disabled } }); load();
+  });
+  app.querySelectorAll('[data-del]').forEach((b) => b.onclick = async () => {
+    if (!confirm('Удалить код навсегда?')) return;
+    await api('/api/codes/' + b.dataset.del, { method: 'DELETE' }); load();
+  });
+}
+load();
+</script>
+</body>
+</html>

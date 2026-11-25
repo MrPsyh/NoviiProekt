@@ -1,0 +1,11 @@
+{
+  "name": "lesefreund",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Немецкие книги с мгновенным переводом слов и фраз + локальная админ-панель промокодов",
+  "scripts": {
+    "start": "node tools/serve.js",
+    "admin": "node admin/server.js"
+  },
+  "engines": { "node": ">=18" }
+}
