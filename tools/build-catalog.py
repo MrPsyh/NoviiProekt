@@ -38,7 +38,7 @@ def people(s):
     return out
 
 LIT = re.compile(r'^(P|B|GR|D)')  # література, філософія, фольклор, історія (мемуари)
-BAD = re.compile(r'erotic|sexual|pornograph|sadomaso|homosexual', re.I)
+BAD = re.compile(r'erotic|sexual|pornograph|sadomaso|homosexual|German language|Readers \(|Textbooks|Dictionaries|Conversation and phrase', re.I)
 KIDS = re.compile(r'juvenile|children|kinder|fairy tales|märchen|nursery', re.I)
 POETRY = re.compile(r'poetry|poems|gedichte|ballad', re.I)
 DRAMA = re.compile(r'drama|plays|traged|comed', re.I)

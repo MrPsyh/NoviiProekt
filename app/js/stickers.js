@@ -7,7 +7,7 @@ const DEFS = `<defs>
   <radialGradient id="owlDisc" cx="50%" cy="40%" r="65%"><stop offset="0" stop-color="#7d9cc4"/><stop offset="1" stop-color="#4c6d98"/></radialGradient>
   <linearGradient id="owlBelly" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f9fc"/><stop offset="1" stop-color="#cfdceb"/></linearGradient>
   <linearGradient id="owlWing" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f4b72"/><stop offset="1" stop-color="#1b2d47"/></linearGradient>
-  <radialGradient id="owlIris" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#ffd27a"/><stop offset=".7" stop-color="#f4a03a"/><stop offset="1" stop-color="#c96a16"/></radialGradient>
+  <radialGradient id="owlIris" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#2a3d62"/><stop offset="1" stop-color="#0c1426"/></radialGradient>
   <linearGradient id="owlBeak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc06b"/><stop offset="1" stop-color="#e07a2c"/></linearGradient>
   <linearGradient id="owlFoot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb35c"/><stop offset="1" stop-color="#e2832f"/></linearGradient>
 </defs>`;
@@ -19,10 +19,9 @@ function eye(cx, mode, look = [0, 0]) {
     <path d="M${cx - 10} ${98}l-3 4M${cx} ${100}v5M${cx + 10} ${98}l3 4" stroke="#14213a" stroke-width="2" stroke-linecap="round"/>`;
   return `<circle cx="${cx}" cy="93" r="18" fill="#fdfdfb"/>
     <circle cx="${cx}" cy="93" r="18" fill="none" stroke="#2b4466" stroke-width="2.5" opacity=".5"/>
-    <circle cx="${cx + dx}" cy="${94 + dy}" r="12" fill="url(#owlIris)"/>
-    <circle cx="${cx + dx}" cy="${94 + dy}" r="6.8" fill="#0d1526"/>
-    <circle cx="${cx + dx + 4}" cy="${90 + dy}" r="3.4" fill="#fff"/>
-    <circle cx="${cx + dx - 3.5}" cy="${98 + dy}" r="1.6" fill="#fff" opacity=".8"/>
+    <circle cx="${cx + dx}" cy="${95 + dy}" r="11.5" fill="url(#owlIris)"/>
+    <circle cx="${cx + dx + 4}" cy="${90 + dy}" r="4.2" fill="#fff"/>
+    <circle cx="${cx + dx - 4}" cy="${99 + dy}" r="2" fill="#9fc3ff" opacity=".9"/>
     <path d="M${cx - 17} ${84}q17-10 34 0q-17-5-34 0z" fill="#3a5a85" opacity=".35"/>`;
 }
 

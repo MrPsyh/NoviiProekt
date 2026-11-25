@@ -540,3 +540,4 @@ body.paged-mode #view { padding-bottom: 0; }
   linear-gradient(160deg, hsl(var(--h, 15) 42% 30%), hsl(var(--h, 15) 48% 16%)); }
 .cover.nocover::before { color: #f1dca7; border-color: #c9a96e; text-shadow: 0 1px 0 rgba(0,0,0,.5); box-shadow: 0 -6px 0 -5px #c9a96e, 0 6px 0 -5px #c9a96e; }
 .cover.nocover::after { color: #d9bf86; }
+.prot-note { display: flex; gap: 12px; align-items: flex-start; border-color: color-mix(in srgb, var(--gold) 50%, var(--line)); } .prot-note > b { font-size: 26px; color: var(--gold); line-height: 1; }

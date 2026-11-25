@@ -108,6 +108,22 @@ function wireMore(container, list) {
   };
 }
 
+// Популярні книжки, які ще захищені авторським правом: пояснюємо, чому їх немає
+const PROTECTED = [
+  { re: /prinz|prince|принц|exup/i, until: { uk: 'у Франції до 2032, у США до кінця 2038 року', ru: 'во Франции до 2032, в США до конца 2038 года', en: 'in France until 2032 and in the US until the end of 2038' } },
+  { re: /murakami|мураками|муракамі/i, until: { uk: 'автор живий — потрібна ліцензія видавця', ru: 'автор жив — нужна лицензия издателя', en: 'the author is alive — a publisher licence is needed' } },
+  { re: /remarque|ремарк|lissabon|westen nichts|drei kameraden/i, until: { uk: 'до 31.12.2040', ru: 'до 31.12.2040', en: 'until 31 Dec 2040' } },
+  { re: /hesse|siddhartha|steppenwolf|гессе/i, until: { uk: 'до 31.12.2032', ru: 'до 31.12.2032', en: 'until 31 Dec 2032' } },
+  { re: /kästner|kaestner|emil und|кестнер/i, until: { uk: 'до 31.12.2044', ru: 'до 31.12.2044', en: 'until 31 Dec 2044' } },
+  { re: /michael ende|momo|unendliche/i, until: { uk: 'до 31.12.2065', ru: 'до 31.12.2065', en: 'until 31 Dec 2065' } },
+];
+const protectedNote = (q) => {
+  const hit = q.length > 3 && PROTECTED.find((p) => p.re.test(q));
+  if (!hit) return '';
+  const l = store.get('uiLang') || 'uk';
+  return `<div class="card prot-note"><b>©</b><div>${t('protectedNote')} <b>${esc(hit.until[l] || hit.until.en)}</b>. ${t('protectedNote2')}</div></div>`;
+};
+
 async function renderLibrary() {
   const books = await loadIndex();
   const ql = query.toLowerCase().trim();
@@ -129,10 +145,12 @@ async function renderLibrary() {
     <div id="shelves"></div>`;
   const shelves = $('#shelves');
   if (ql || level !== 'all') {
-    const sorted = [...filtered].sort((a, b) => popularity(b) - popularity(a));
-    shelves.innerHTML = sorted.length ? grid(sorted)
+    const wordRe = new RegExp('(^|[\\s\\-–(„"])' + ql.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    const rank = (b) => popularity(b) + (wordRe.test(b.title) ? 1e8 : wordRe.test(b.author) ? 5e7 : 0);
+    const sorted = ql ? [...filtered].sort((a, b) => rank(b) - rank(a)) : [...filtered].sort((a, b) => popularity(b) - popularity(a));
+    shelves.innerHTML = protectedNote(query) + (sorted.length ? grid(sorted)
       : `<div class="empty"><div class="empty-sticker" data-sticker="think"></div><p>${t('nothingFound')}</p>
-         <a class="btn" href="#/import?q=${encodeURIComponent(query)}">＋ ${t('importSearch')}</a></div>`;
+         <a class="btn" href="#/import?q=${encodeURIComponent(query)}">＋ ${t('importSearch')}</a></div>`);
     wireMore(shelves, sorted);
   } else {
     const shelf = (id, icon, title, list, href) => list.length ? `<section class="shelf"><div class="shelf-head"><h2>${icon} ${title}</h2>
